@@ -15,7 +15,7 @@ st.set_page_config(
 )
 
 # إعداد محرك الذكاء الاصطناعي (يأخذ المفتاح تلقائياً من Secrets في السحابة)
-API_KEY = st.secrets.get("GEMINI_API_KEY", "AIzaSyBQe7y4FOXLJZ6m2kvp84yr0YlEz_m1fTI")
+API_KEY = st.secrets.get("GEMINI_API_KEY", "ضع المفتاح")
 client = genai.Client(api_key=API_KEY)
 
 # ملف التقييمات المحلي
