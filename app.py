@@ -14,8 +14,8 @@ st.set_page_config(
     initial_sidebar_state="expanded"
 )
 
-# إعداد محرك الذكاء الاصطناعي (يأخذ المفتاح تلقائياً من Secrets في السحابة)
-API_KEY = st.secrets.get("GEMINI_API_KEY", "ضع المفتاح")
+# إعداد محرك الذكاء الاصطناعي من Secrets
+API_KEY = st.secrets.get("GEMINI_API_KEY", "")
 client = genai.Client(api_key=API_KEY)
 
 # ملف التقييمات المحلي
@@ -55,10 +55,10 @@ with tab_workspace:
         if st.sidebar.button("⚡ تشغيل التحليل الموحد", type="primary", use_container_width=True):
             with st.spinner("جاري تشغيل خط سير العمليات (Analyze → Decide → Create)..."):
                 try:
-                    # التعديل هنا: الـ Prompt الإلزامي لتوليد الكابشن والهاشتاغات بشكل صريح
+                    # Prompt جديد واضح يلزم Gemini بتوليد كابشن وهاشتاغات حقيقية للـ Image
                     unified_prompt = (
-                        "You are Lumina AI — an advanced Expert System. "
-                        "Analyze the image and return a STRICTLY VALID JSON object (WITHOUT MARKDOWN OR CODEBLOCKS).\n"
+                        "You are Lumina AI — an advanced Expert System for image analysis and content creation.\n"
+                        "Analyze the provided image in detail and return a STRICTLY VALID JSON object (NO MARKDOWN, NO CODEBLOCKS).\n"
                         "JSON structure MUST be as follows:\n"
                         "{\n"
                         '  "category": "Product OR Portrait OR Food OR Resume OR General",\n'
@@ -66,21 +66,21 @@ with tab_workspace:
                         '  "status": "Authentic OR AI-Generated",\n'
                         '  "readiness_score": 92,\n'
                         '  "readiness_status": "READY TO PUBLISH",\n'
-                        '  "lumina_insight": "انطباع ذكي ومختصر بالعربي حول جودة الصورة والتكوين والمنصة الأنسب للنشر",\n'
+                        '  "lumina_insight": "اكتب انطباعاً ذكياً ومختصراً جداً عن جودة الصورة والتكوين والمنصة الأنسب للنشر بالعربية",\n'
                         '  "readiness_breakdown": [\n'
                         '     "✔ جودة الصورة: ممتازة وعالية الدقة",\n'
                         '     "✔ الأصالة: عالية وغير خاضعة للتزييف",\n'
                         '     "⚠ نصيحة تحسين: ينصح بتعديل الإضاءة في الزوايا"\n'
                         '  ],\n'
-                        '  "reasoning": ["دليل جنائي/بصري 1", "دليل جنائي/بصري 2"],\n'
+                        '  "reasoning": ["دليل بصري 1 على الأصالة أو التكوين", "دليل بصري 2"],\n'
                         '  "smart_actions": [\n'
-                        '     {"title": "📝 الكابشن والهاشتاغات", "content": "اكتب كابشن جذاب وعصري ومناسب للمنصة مع 8-10 هاشتاغات قوية ومستهدفة"},\n'
-                        '     {"title": "👔 النسخة الرسمية (Professional)", "content": "صياغة احترافية ورسمية للمحتوى مناسبة لـ LinkedIn أو المواقع الرسمية"},\n'
-                        '     {"title": "🎯 الخطة التسويقية والجمهور", "content": "تحديد الجمهور المستهدف بدقة والاستراتيجية الأنسب للترويج"},\n'
-                        '     {"title": "🎨 نصائح التعديل البصري", "content": "نصائح تقنية سريعة لتحسين الإضاءة والألوان والتأثيرات البصرية"}\n'
+                        '     {"title": "📝 الكابشن والهاشتاغات", "content": "اكتب هنا الكابشن الفعلي المصاغ خصيصاً لهذه الصورة مع 8 إلى 10 هاشتاغات قوية ومناسبة لها"},\n'
+                        '     {"title": "👔 النسخة الرسمية (Professional)", "content": "اكتب هنا صياغة احترافية ورسمية للمحتوى مناسبة لمنصة LinkedIn بناءً على الصورة"},\n'
+                        '     {"title": "🎯 الخطة التسويقية والجمهور", "content": "حدد هنا الجمهور المستهدف بدقة والاستراتيجية الأنسب لترويج هذه الصورة"},\n'
+                        '     {"title": "🎨 نصائح التعديل البصري", "content": "اعطِ نصائح تقنية سريعة لتحسين الإضاءة والألوان والتأثيرات البصرية لهذه الصورة"}\n'
                         '  ]\n'
                         "}\n"
-                        "All text fields inside JSON MUST be in professional ARABIC."
+                        "CRITICAL: Replace all action contents with REAL generated text specific to the uploaded image in Arabic language."
                     )
 
                     response = client.models.generate_content(
@@ -141,25 +141,28 @@ with tab_workspace:
 
         st.divider()
 
-        # 💬 Ask Lumina Consultant (محصّن ضد الأخطاء نهائياً)
+        # 💬 Ask Lumina Consultant
         st.subheader("💬 Ask Lumina (المستشار الذكي)")
         
         c1, c2, c3, c4 = st.columns(4)
-        preset_q = None
-        if c1.button("💡 كيف أحسن الصورة؟"): preset_q = "كيف أحسن الصورة؟"
-        if c2.button("🔍 ليش اعتبرتها أصلية؟"): preset_q = "ليش اعتبرتها أصلية؟"
-        if c3.button("👔 اكتب نسخة رسمية"): preset_q = "اكتب نسخة رسمية"
-        if c4.button("🎯 مين الجمهور المناسب؟"): preset_q = "مين الجمهور المناسب؟"
+        
+        # استخدام Session State للتحكم بالنص المدخل بمرونة
+        if "asked_question" not in st.session_state:
+            st.session_state["asked_question"] = ""
 
-        user_input = st.text_input("أو اكتب سؤالك هنا:", value=preset_q if preset_q else "", key="ask_input_box")
+        if c1.button("💡 كيف أحسن الصورة؟"): st.session_state["asked_question"] = "كيف أحسن الصورة؟"
+        if c2.button("🔍 ليش اعتبرتها أصلية؟"): st.session_state["asked_question"] = "ليش اعتبرتها أصلية؟"
+        if c3.button("👔 اكتب نسخة رسمية"): st.session_state["asked_question"] = "اكتب نسخة رسمية للمحتوى"
+        if c4.button("🎯 مين الجمهور المناسب؟"): st.session_state["asked_question"] = "مين الجمهور المستهدف لهذه الصورة؟"
+
+        user_input = st.text_input("أو اكتب سؤالك هنا:", value=st.session_state["asked_question"], key="chat_input")
 
         if user_input:
             with st.spinner("جاري استشارة Lumina..."):
                 try:
                     consult_prompt = (
-                        f"User asked: '{user_input}'. "
-                        f"Based on this analysis JSON context: {json.dumps(data, ensure_ascii=False)}. "
-                        "Provide a helpful, precise professional answer in Arabic."
+                        f"أجب على سؤال المستخدم التالي باللغة العربية بأسلوب احترافي ومختصر بناءً على تحليل هذه الصورة: '{user_input}'. "
+                        f"سياق التحليل السابق: {json.dumps(data, ensure_ascii=False)}"
                     )
                     
                     contents_payload = [consult_prompt]
@@ -170,10 +173,12 @@ with tab_workspace:
                         model='gemini-2.5-flash',
                         contents=contents_payload
                     )
-                    st.chat_message("assistant").write(res.text)
+                    
+                    st.markdown("### 🤖 إجابة المستشار الذكي:")
+                    st.info(res.text)
 
                 except Exception as e:
-                    st.error(f"عذراً، حدث خطأ بسيط في الرد: {e}")
+                    st.error(f"عذراً، حدث خطأ أثناء الرد: {e}")
 
         st.divider()
 
@@ -228,4 +233,4 @@ with tab_analytics:
             st.subheader("📝 سجل الآراء والتعليقات:")
             st.dataframe(df_feedback, use_container_width=True)
         else:
-            st.warning("لا توجد تقييمات مسجلة حتى الآن.")       
+            st.warning("لا توجد تقييمات مسجلة حتى الآن.")
