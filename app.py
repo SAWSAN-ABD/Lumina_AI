@@ -39,7 +39,7 @@ st.markdown("""
 """, unsafe_allow_html=True)
 
 # --- 3. إنشاء التبويبات ---
-tab_workspace, tab_analytics = st.tabs(["🚀 منصة التحليل والإنشاء", "📊 تقييمات المستخدمين (Analytics)"])
+tab_workspace, tab_analytics = st.tabs(["🚀 منصة التحليل والإنشاء", "📊 تقييمات المستخدمين والتصدير (Analytics)"])
 
 # ==========================================
 # TAB 1: LUMINA WORKSPACE
@@ -55,7 +55,6 @@ with tab_workspace:
         if st.sidebar.button("⚡ تشغيل التحليل الموحد", type="primary", use_container_width=True):
             with st.spinner("جاري تشغيل خط سير العمليات (Analyze → Decide → Create)..."):
                 try:
-                    # Prompt جديد واضح يلزم Gemini بتوليد كابشن وهاشتاغات حقيقية للـ Image
                     unified_prompt = (
                         "You are Lumina AI — an advanced Expert System for image analysis and content creation.\n"
                         "Analyze the provided image in detail and return a STRICTLY VALID JSON object (NO MARKDOWN, NO CODEBLOCKS).\n"
@@ -127,6 +126,28 @@ with tab_workspace:
             for r in data.get("reasoning", []):
                 st.write(f"• {r}")
 
+            # 📥 خيار تنزيل التقرير
+            st.divider()
+            report_str = f"""=== LUMINA AI AUDIT REPORT ===
+Timestamp: {datetime.now().strftime("%Y-%m-%d %H:%M:%S")}
+Category: {data.get('category')}
+Readiness Score: {data.get('readiness_score')}% ({data.get('readiness_status')})
+Authenticity: {data.get('authenticity_score')} ({data.get('status')})
+
+Insight:
+{data.get('lumina_insight')}
+
+Breakdown:
+""" + "\n".join([f"- {i}" for i in data.get("readiness_breakdown", [])])
+
+            st.download_button(
+                label="📥 تنزيل التقرير الفني (Download Report)",
+                data=report_str,
+                file_name=f"lumina_report_{datetime.now().strftime('%Y%m%d_%H%M%S')}.txt",
+                mime="text/plain",
+                use_container_width=True
+            )
+
         with col_right:
             st.subheader("✨ Phase 3: Create (المقترحات الذكية والكابشن)")
             
@@ -141,44 +162,50 @@ with tab_workspace:
 
         st.divider()
 
-        # 💬 Ask Lumina Consultant
+        # 💬 Ask Lumina Consultant (نظام النموذج المحصن بأزرار واستجابة مضمونة)
         st.subheader("💬 Ask Lumina (المستشار الذكي)")
         
-        c1, c2, c3, c4 = st.columns(4)
-        
-        # استخدام Session State للتحكم بالنص المدخل بمرونة
-        if "asked_question" not in st.session_state:
-            st.session_state["asked_question"] = ""
+        with st.form("ask_lumina_form"):
+            selected_option = st.selectbox(
+                "اختر سؤالاً سريعاً أو اختر كتابة سؤال مخصص:",
+                [
+                    "اختر من الأسئلة المقترحة...",
+                    "💡 كيف أحسن جودة هذه الصورة؟",
+                    "🔍 ما هي أدلة الأصالة التي اعتمدت عليها؟",
+                    "👔 صغ لي نصاً رسمياً لهذه الصورة لمنصة LinkedIn",
+                    "🎯 من هو الجمهور المستهدف الدقيق لهذه الصورة؟"
+                ]
+            )
+            custom_question = st.text_input("أو اكتب سؤالك المخصص هنا:")
+            submit_ask = st.form_submit_button("إرسال السؤال لـ Lumina 🚀")
 
-        if c1.button("💡 كيف أحسن الصورة؟"): st.session_state["asked_question"] = "كيف أحسن الصورة؟"
-        if c2.button("🔍 ليش اعتبرتها أصلية؟"): st.session_state["asked_question"] = "ليش اعتبرتها أصلية؟"
-        if c3.button("👔 اكتب نسخة رسمية"): st.session_state["asked_question"] = "اكتب نسخة رسمية للمحتوى"
-        if c4.button("🎯 مين الجمهور المناسب؟"): st.session_state["asked_question"] = "مين الجمهور المستهدف لهذه الصورة؟"
+            if submit_ask:
+                final_q = custom_question.strip() if custom_question.strip() else selected_option
+                
+                if final_q and final_q != "اختر من الأسئلة المقترحة...":
+                    with st.spinner("جاري تحليل سؤالك بذكاء..."):
+                        try:
+                            consult_prompt = (
+                                f"أجب على سؤال المستخدم التالي باللغة العربية بأسلوب احترافي ومختصر بناءً على هذه الصورة وتحليلها: '{final_q}'. "
+                                f"سياق التحليل السابق: {json.dumps(data, ensure_ascii=False)}"
+                            )
+                            
+                            contents_payload = [consult_prompt]
+                            if "current_image" in st.session_state and st.session_state["current_image"] is not None:
+                                contents_payload.insert(0, st.session_state["current_image"])
 
-        user_input = st.text_input("أو اكتب سؤالك هنا:", value=st.session_state["asked_question"], key="chat_input")
+                            res = client.models.generate_content(
+                                model='gemini-2.5-flash',
+                                contents=contents_payload
+                            )
+                            
+                            st.markdown("### 🤖 إجابة المستشار الذكي:")
+                            st.info(res.text)
 
-        if user_input:
-            with st.spinner("جاري استشارة Lumina..."):
-                try:
-                    consult_prompt = (
-                        f"أجب على سؤال المستخدم التالي باللغة العربية بأسلوب احترافي ومختصر بناءً على تحليل هذه الصورة: '{user_input}'. "
-                        f"سياق التحليل السابق: {json.dumps(data, ensure_ascii=False)}"
-                    )
-                    
-                    contents_payload = [consult_prompt]
-                    if "current_image" in st.session_state and st.session_state["current_image"] is not None:
-                        contents_payload.insert(0, st.session_state["current_image"])
-
-                    res = client.models.generate_content(
-                        model='gemini-2.5-flash',
-                        contents=contents_payload
-                    )
-                    
-                    st.markdown("### 🤖 إجابة المستشار الذكي:")
-                    st.info(res.text)
-
-                except Exception as e:
-                    st.error(f"عذراً، حدث خطأ أثناء الرد: {e}")
+                        except Exception as e:
+                            st.error(f"حدث خطأ أثناء الرد: {e}")
+                else:
+                    st.warning("يرجى اختيار سؤال أو كتابة سؤال في المربع قبل الإرسال.")
 
         st.divider()
 
@@ -232,5 +259,14 @@ with tab_analytics:
 
             st.subheader("📝 سجل الآراء والتعليقات:")
             st.dataframe(df_feedback, use_container_width=True)
+
+            # 📥 زر تصدير التقييمات إلى Excel/CSV
+            csv_data = df_feedback.to_csv(index=False).encode('utf-8-sig')
+            st.download_button(
+                label="📥 تصدير جدول التقييمات (CSV/Excel)",
+                data=csv_data,
+                file_name="lumina_feedbacks.csv",
+                mime="text/csv"
+            )
         else:
-            st.warning("لا توجد تقييمات مسجلة حتى الآن.")
+            st.warning("لا توجد تقييمات مسجلة حتى الآن.")           
