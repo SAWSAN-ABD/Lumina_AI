@@ -227,5 +227,4 @@ with tab_workspace:
               model=MODEL_NAME, contents=[image, unified_prompt]
           )
 
-          raw = (
-              response.text.strip().replace("```json", "").replace("
+         raw = response.text.strip().replace("```json", "").replace("```", "")
