@@ -2,13 +2,15 @@ import io
 import json
 from datetime import datetime
 
-from google import genai
 import pandas as pd
 from PIL import Image, ImageEnhance
 from reportlab.lib.pagesizes import letter
 from reportlab.pdfgen import canvas
 import streamlit as st
 from streamlit_gsheets import GSheetsConnection
+
+# استدعاء مكتبة الذكاء الاصطناعي الحديثة
+from google import genai
 
 try:
   from streamlit_image_comparison import image_comparison
@@ -181,7 +183,7 @@ with tab_workspace:
   )
 
   if uploaded_file is not None:
-    image = Image.open(uploaded_file)
+    image = Image.open(uploaded_file).convert("RGB")
     st.sidebar.image(
         image, caption="الصورة المرفوعة", use_container_width=True
     )
@@ -331,20 +333,28 @@ with tab_workspace:
         img_mod = enhancer2.enhance(sharp_val)
 
       with col_comp:
-        st.write("↔️ **اسحبي الشريط للمقارنة بين الأصلية والأصل المعدل:**")
-        if image_comparison:
-          image_comparison(
-              image1=curr_img,
-              image2=img_mod,
-              label1="الصورة الأصلية",
-              label2="المعدلة بـ Lumina",
-          )
-        else:
-          st.image(
-              [curr_img, img_mod],
-              caption=["الصورة الأصلية", "المعدلة تلقائياً"],
-              width=250,
-          )
+        st.write("↔️ **قارني بين الصورة الأصلية والمعدلة:**")
+        try:
+          if image_comparison:
+            image_comparison(
+                img1=curr_img,
+                img2=img_mod,
+                label1="الصورة الأصلية",
+                label2="المعدلة بـ Lumina",
+            )
+          else:
+            st.image(
+                [curr_img, img_mod],
+                caption=["الصورة الأصلية", "المعدلة تلقائياً"],
+                width=250,
+            )
+        except Exception:
+          # صمام أمان في حال واجهت مكتبة المقارنة أي مشكلة في المتصفح
+          col_a, col_b = st.columns(2)
+          with col_a:
+            st.image(curr_img, caption="الصورة الأصلية", use_container_width=True)
+          with col_b:
+            st.image(img_mod, caption="المعدلة بـ Lumina", use_container_width=True)
 
     st.divider()
 
@@ -428,7 +438,7 @@ with tab_workspace:
           st.error(f"حدث خطأ أثناء الاتصال بقاعدة البيانات: {e}")
 
   else:
-    st.info("👈 نحن بانتظارك ارفع صورتك من هنا")
+    st.info("👈 نحن بانتظارك ارفع صورتك")
 
 # ==========================================
 # TAB 2: ANALYTICS
