@@ -9,7 +9,7 @@ from reportlab.pdfgen import canvas
 import streamlit as st
 from streamlit_gsheets import GSheetsConnection
 
-# استدعاء مكتبة الذكاء الاصطناعي ومكتبة المقارنة
+# استدعاء مكتبة الذكاء الاصطناعي الحديثة
 from google import genai
 
 try:
@@ -67,6 +67,9 @@ st.markdown(
 API_KEY = st.secrets.get("GEMINI_API_KEY", "")
 client = genai.Client(api_key=API_KEY)
 conn = st.connection("gsheets", type=GSheetsConnection)
+
+# استخدام موديل ذو توافقية عالية مع المكتبة
+MODEL_NAME = "gemini-2.5-flash"
 
 if "history" not in st.session_state:
   st.session_state["history"] = []
@@ -158,7 +161,7 @@ tab_workspace, tab_analytics = st.tabs(
 with tab_workspace:
   st.sidebar.header("🌸 رفع الأصل البصري")
 
-  # --- الميزة 2: سجل الجلسة السابقة (History Log) ---
+  # --- سجل الجلسة السابقة (History Log) ---
   if st.session_state["history"]:
     st.sidebar.markdown("---")
     st.sidebar.subheader("📜 سجل التحليلات السابقة")
@@ -221,250 +224,8 @@ with tab_workspace:
           )
 
           response = client.models.generate_content(
-              model="gemini-1.5-flash", contents=[image, unified_prompt]
+              model=MODEL_NAME, contents=[image, unified_prompt]
           )
 
           raw = (
-              response.text.strip().replace("```json", "").replace("```", "")
-          )
-          parsed_data = json.loads(raw)
-
-          st.session_state["lumina_data"] = parsed_data
-          st.session_state["current_image"] = image
-
-          # إضافة إلى السجل
-          st.session_state["history"].append(
-              {"data": parsed_data, "image": image}
-          )
-          st.success("✅ اكتمل التحليل بنجاح!")
-
-        except Exception as e:
-          st.error(f"حدث خطأ أثناء معالجة الصورة: {e}")
-
-  # عرض النتائج
-  if "lumina_data" in st.session_state:
-    data = st.session_state["lumina_data"]
-
-    st.markdown(
-        f"""
-            <div class="custom-card">
-                <h4 style="color: #c05c67; margin-top:0; font-weight: 700;">🧠 Lumina Insight (الرؤية الذكية):</h4>
-                <p style="font-size: 16.5px; line-height: 1.6; color: #2d2424; margin-bottom:0;">{data.get('lumina_insight', '')}</p>
-            </div>
-        """,
-        unsafe_allow_html=True,
-    )
-
-    col_analysis, col_report = st.columns(2)
-
-    with col_analysis:
-      st.markdown(
-          """
-                <div class="custom-card">
-                    <h3 style="color: #c05c67; margin-top:0; font-weight: 700;">🔍 قسم التحليل البصري والأصالة</h3>
-                </div>
-            """,
-          unsafe_allow_html=True,
-      )
-      st.markdown(f"**نوع المحتوى:** `{data.get('category')}`")
-      st.markdown(
-          f"**نسبة الأصالة:** `{data.get('authenticity_score')}`"
-          f" ({data.get('status')})"
-      )
-      st.write("**الأدلة البصرية والجنائية:**")
-      for r in data.get("reasoning", []):
-        st.write(f"• {r}")
-
-    with col_report:
-      st.markdown(
-          """
-                <div class="custom-card">
-                    <h3 style="color: #c05c67; margin-top:0; font-weight: 700;">📊 جاهزية النشر والتقرير الفني</h3>
-                </div>
-            """,
-          unsafe_allow_html=True,
-      )
-      score = data.get("readiness_score", 85)
-      st.metric(
-          label="Publishing Readiness Score",
-          value=f"{score}%",
-          delta=data.get("readiness_status", "READY TO PUBLISH"),
-      )
-      st.progress(score / 100)
-
-      st.write("**تفاصيل التقييم التقديري:**")
-      for item in data.get("readiness_breakdown", []):
-        st.write(f"- {item}")
-
-      # --- الميزة 3: تصدير التقرير بـ PDF و TXT ---
-      col_pdf, col_txt = st.columns(2)
-      with col_pdf:
-        pdf_bytes = generate_pdf_report(data)
-        st.download_button(
-            label="📄 تنزيل Tقرير PDF",
-            data=pdf_bytes,
-            file_name=f"lumina_report_{datetime.now().strftime('%Y%m%d_%H%M')}.pdf",
-            mime="application/pdf",
-            use_container_width=True,
-        )
-      with col_txt:
-        report_str = f"LUMINA REPORT\nCategory: {data.get('category')}\nScore: {data.get('readiness_score')}%\nInsight: {data.get('lumina_insight')}"
-        st.download_button(
-            label="📝 تنزيل ملف TXT",
-            data=report_str,
-            file_name="lumina_report.txt",
-            mime="text/plain",
-            use_container_width=True,
-        )
-
-    st.divider()
-
-    # --- الميزة 1: شريط المقارنة البصري التفاعلي (Before/After) ---
-    st.subheader("🖼️ أداة المعاينة والمقارنة البصرية (Interactive Enhancer)")
-    if "current_image" in st.session_state:
-      curr_img = st.session_state["current_image"]
-      col_opt, col_comp = st.columns([1, 2])
-
-      with col_opt:
-        st.write("🔧 **تحسين بصري سريع:**")
-        contrast_val = st.slider("التباين (Contrast)", 0.5, 2.0, 1.2)
-        sharp_val = st.slider("الوضوح (Sharpness)", 0.5, 3.0, 1.5)
-
-        # إحداث التعديل
-        enhancer = ImageEnhance.Contrast(curr_img)
-        img_mod = enhancer.enhance(contrast_val)
-        enhancer2 = ImageEnhance.Sharpness(img_mod)
-        img_mod = enhancer2.enhance(sharp_val)
-
-      with col_comp:
-        st.write("↔️ **اسحبي الشريط للمقارنة بين الأصلية والأصل المعدل:**")
-        if image_comparison:
-          image_comparison(
-              image1=curr_img,
-              image2=img_mod,
-              label1="الصورة الأصلية",
-              label2="المعدلة بـ Lumina",
-          )
-        else:
-          st.image(
-              [curr_img, img_mod],
-              caption=["الصورة الأصلية", "المعدلة تلقائياً"],
-              width=250,
-          )
-
-    st.divider()
-
-    # ✨ صناعة المحتوى
-    st.subheader("✨ المقترحات الذكية وصناعة المحتوى (Create)")
-    actions = data.get("smart_actions", [])
-    titles = [act["title"] for act in actions]
-    selected_tab = st.radio(
-        "اختر الإجراء المباشر المطلوب:", titles, horizontal=True
-    )
-    for act in actions:
-      if act["title"] == selected_tab:
-        st.text_area(
-            "المحتوى المولد تلقائياً:", value=act["content"], height=200
-        )
-
-    st.divider()
-
-    # 💬 المستشار الذكي
-    st.subheader("💬 Ask Lumina (المستشار الذكي)")
-    with st.form("ask_lumina_form"):
-      selected_option = st.selectbox(
-          "اختر سؤالاً سريعاً أو اكتب سؤالك:",
-          [
-              "اختر من الأسئلة المقترحة...",
-              "💡 كيف أحسن جودة هذه الصورة؟",
-              "🔍 ما هي أدلة الأصالة التي اعتمدت عليها؟",
-              "👔 صغ لي نصاً رسمياً لهذه الصورة لمنصة LinkedIn",
-              "🎯 من هو الجمهور المستهدف الدقيق لهذه الصورة؟",
-          ],
-      )
-      custom_question = st.text_input("أو اكتب سؤالك المخصص هنا:")
-      submit_ask = st.form_submit_button("إرسال السؤال لـ Lumina 🚀")
-
-      if submit_ask:
-        final_q = (
-            custom_question.strip()
-            if custom_question.strip()
-            else selected_option
-        )
-        if final_q and final_q != "اختر من الأسئلة المقترحة...":
-          with st.spinner("جاري استشارة Lumina..."):
-            try:
-              consult_prompt = (
-                  "أجب على سؤال المستخدم التالي باللغة العربية بأسلوب احترافي"
-                  f" ومختصر بناءً على هذه الصورة وتحليلها: '{final_q}'. سياق"
-                  f" التحليل: {json.dumps(data, ensure_ascii=False)}"
-              )
-              payload = [consult_prompt]
-              if "current_image" in st.session_state:
-                payload.insert(0, st.session_state["current_image"])
-
-              res = client.models.generate_content(
-                  model="gemini-1.5-flash", contents=payload
-              )
-              st.markdown("### 🤖 إجابة المستشار الذكي:")
-              st.info(res.text)
-            except Exception as e:
-              st.error(f"حدث خطأ أثناء الرد: {e}")
-
-    st.divider()
-
-    # ⭐ التقييم
-    st.subheader("⭐ شاركنا رأيك وتقييمك للتجربة")
-    with st.form("feedback_form"):
-      rating = st.slider("تقييمك للدقة والجودة (من 1 إلى 5 نجوم):", 1, 5, 5)
-      comment = st.text_input("ملاحظاتك أو تعليقك اللطيف (اختياري):")
-      submitted = st.form_submit_button("إرسال التقييم 🚀")
-
-      if submitted:
-        try:
-          existing_df = load_feedbacks()
-          new_row = pd.DataFrame([{
-              "Timestamp": datetime.now().strftime("%Y-%m-%d %H:%M:%S"),
-              "Rating": rating,
-              "Category": data.get("category", "General"),
-              "Comment": comment,
-          }])
-          updated_df = pd.concat([existing_df, new_row], ignore_index=True)
-          conn.update(data=updated_df)
-          st.balloons()
-          st.success("شكراً لك! تم تسجيل تقييمك بنجاح في السحابة. 🌸")
-        except Exception as e:
-          st.error(f"حدث خطأ أثناء الاتصال بقاعدة البيانات: {e}")
-
-  else:
-    st.info("👈 يرجى رفع صورة من القائمة الجانبية لبدء التحليل.")
-
-# ==========================================
-# TAB 2: ANALYTICS
-# ==========================================
-with tab_analytics:
-  st.header("📊 لوحة تحليلات تقييمات المستخدمين (Analytics Dashboard)")
-  df_feedback = load_feedbacks()
-  if not df_feedback.empty and "Rating" in df_feedback.columns:
-    df_feedback["Rating"] = pd.to_numeric(
-        df_feedback["Rating"], errors="coerce"
-    )
-    df_feedback = df_feedback.dropna(subset=["Rating"])
-    m1, m2, m3 = st.columns(3)
-    m1.metric("إجمالي التقييمات", len(df_feedback))
-    m2.metric("متوسط التقييم", f"{df_feedback['Rating'].mean():.2f} / 5.0 ⭐")
-    m3.metric(
-        "نسبة الرضا العالي", f"{(df_feedback['Rating'] >= 4).mean() * 100:.1f}%"
-    )
-    st.divider()
-    c1, c2 = st.columns(2)
-    with c1:
-      st.subheader("توزيع النجوم")
-      st.bar_chart(df_feedback["Rating"].value_counts())
-    with c2:
-      st.subheader("المتوسط حسب التصنيف")
-      if "Category" in df_feedback.columns:
-        st.bar_chart(df_feedback.groupby("Category")["Rating"].mean())
-    st.dataframe(df_feedback, use_container_width=True)
-  else:
-    st.warning("لا توجد تقييمات مسجلة حتى الآن.")
+              response.text.strip().replace("```json", "").replace("
