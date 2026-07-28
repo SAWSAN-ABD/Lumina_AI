@@ -1,6 +1,7 @@
 import io
 import json
 from datetime import datetime
+import urllib.request
 
 import pandas as pd
 from PIL import Image, ImageEnhance
@@ -24,6 +25,9 @@ st.set_page_config(
     layout="wide",
     initial_sidebar_state="expanded",
 )
+
+# رابط سكربت جوجل المجاني للتقييمات (ضعي رابطك هنا بين العلامتين)
+GOOGLE_SCRIPT_URL = "https://script.google.com/macros/s/AKfycby5jFANTTKQSC3xYeo_LXJ1mYsDDPDJgo_TW_M4thXp4Q6vgo_9SxGma_KJAjkAldcy/exec"
 
 st.markdown(
     """
@@ -66,7 +70,6 @@ st.markdown(
 # إعداد الربط والذاكرة
 API_KEY = st.secrets.get("GEMINI_API_KEY", "")
 client = genai.Client(api_key=API_KEY)
-conn = st.connection("gsheets", type=GSheetsConnection)
 
 MODEL_NAME = "gemini-2.5-flash"
 
@@ -131,14 +134,6 @@ def generate_pdf_report(data):
   p.save()
   buffer.seek(0)
   return buffer
-
-
-def load_feedbacks():
-  try:
-    df = conn.read(ttl="0d")
-    return df.dropna(how="all")
-  except Exception:
-    return pd.DataFrame(columns=["Timestamp", "Rating", "Category", "Comment"])
 
 
 # --- الهيدر ---
@@ -211,7 +206,7 @@ with tab_workspace:
               ' {"title": "📝 الكابشن والهاشتاغات", "content": "اكتب هنا الكابشن'
               " الفعلي المصاغ خصيصاً لهذه الصورة مع 8 إلى 10 هاشتاغات قوية ومناسبة"
               ' لها"},\n     {"title": "👔 النسخة الرسمية (Professional)",'
-              ' "content": "اكتب هنا صياغة احترافية ورسمية للمحتوى مناسبة لمنصة'
+              ' "content": "اكتب هنا صياغة احترافية الرسمية للمحتوى مناسبة لمنصة'
               ' LinkedIn بناءً على الصورة"},\n     {"title": "🎯 الخطة'
               ' التسويقية والجمهور", "content": "حدد هنا الجمهور المستهدف بدقة'
               ' والاستراتيجية الأنسب لترويج هذه الصورة"},\n     {"title": "🎨'
@@ -349,12 +344,15 @@ with tab_workspace:
                 width=250,
             )
         except Exception:
-          # صمام أمان في حال واجهت مكتبة المقارنة أي مشكلة في المتصفح
           col_a, col_b = st.columns(2)
           with col_a:
-            st.image(curr_img, caption="الصورة الأصلية", use_container_width=True)
+            st.image(
+                curr_img, caption="الصورة الأصلية", use_container_width=True
+            )
           with col_b:
-            st.image(img_mod, caption="المعدلة بـ Lumina", use_container_width=True)
+            st.image(
+                img_mod, caption="المعدلة بـ Lumina", use_container_width=True
+            )
 
     st.divider()
 
@@ -422,50 +420,67 @@ with tab_workspace:
       submitted = st.form_submit_button("إرسال التقييم 🚀")
 
       if submitted:
+        feedback_data = {
+            "Timestamp": datetime.now().strftime("%Y-%m-%d %H:%M:%S"),
+            "Rating": rating,
+            "Category": data.get("category", "General"),
+            "Comment": comment,
+        }
         try:
-          existing_df = load_feedbacks()
-          new_row = pd.DataFrame([{
-              "Timestamp": datetime.now().strftime("%Y-%m-%d %H:%M:%S"),
-              "Rating": rating,
-              "Category": data.get("category", "General"),
-              "Comment": comment,
-          }])
-          updated_df = pd.concat([existing_df, new_row], ignore_index=True)
-          conn.update(data=updated_df)
-          st.balloons()
-          st.success("شكراً لك! تم تسجيل تقييمك بنجاح في السحابة. 🌸")
+          req = urllib.request.Request(
+              GOOGLE_SCRIPT_URL,
+              data=json.dumps(feedback_data).encode("utf-8"),
+              headers={"Content-Type": "application/json"},
+          )
+          with urllib.request.urlopen(req) as response:
+            st.balloons()
+            st.success(
+                "شكراً لك! تم إرسال تقييمك وحفظه في جوجل شيت بنجاح. 🌸"
+            )
         except Exception as e:
-          st.error(f"حدث خطأ أثناء الاتصال بقاعدة البيانات: {e}")
+          st.error(f"حدث خطأ أثناء إرسال التقييم: {e}")
 
   else:
-    st.info("👈 نحن بانتظارك ارفع صورتك")
+    st.info("👈 نحن بانتظارك ارفع صورتك.")
 
 # ==========================================
 # TAB 2: ANALYTICS
 # ==========================================
 with tab_analytics:
   st.header("📊 لوحة تحليلات تقييمات المستخدمين (Analytics Dashboard)")
-  df_feedback = load_feedbacks()
-  if not df_feedback.empty and "Rating" in df_feedback.columns:
-    df_feedback["Rating"] = pd.to_numeric(
-        df_feedback["Rating"], errors="coerce"
+
+  # جلب البيانات مباشرة من Google Sheets بأمان وقراءة فقط
+  try:
+    conn = st.connection("gsheets", type=GSheetsConnection)
+    df_feedback = conn.read(ttl=5)
+
+    if not df_feedback.empty and "Rating" in df_feedback.columns:
+      df_feedback["Rating"] = pd.to_numeric(
+          df_feedback["Rating"], errors="coerce"
+      )
+
+      m1, m2, m3 = st.columns(3)
+      m1.metric("إجمالي التقييمات", len(df_feedback))
+      m2.metric("متوسط التقييم", f"{df_feedback['Rating'].mean():.2f} / 5.0 ⭐")
+      m3.metric(
+          "نسبة الرضا العالي",
+          f"{(df_feedback['Rating'] >= 4).mean() * 100:.1f}%",
+      )
+      st.divider()
+      c1, c2 = st.columns(2)
+      with c1:
+        st.subheader("توزيع النجوم")
+        st.bar_chart(df_feedback["Rating"].value_counts())
+      with c2:
+        st.subheader("المتوسط حسب التصنيف")
+        if "Category" in df_feedback.columns:
+          st.bar_chart(df_feedback.groupby("Category")["Rating"].mean())
+      st.dataframe(df_feedback, use_container_width=True)
+    else:
+      st.info(
+          "جداول البيانات فارغة حالياً. قومي بإرسال أول تقييم من منصة التحليل!"
+      )
+  except Exception as e:
+    st.info(
+        "لا توجد تقييمات مسجلة بعد، أو يرجى التأكد من ربط الشيت بالشكل الصحيح."
     )
-    df_feedback = df_feedback.dropna(subset=["Rating"])
-    m1, m2, m3 = st.columns(3)
-    m1.metric("إجمالي التقييمات", len(df_feedback))
-    m2.metric("متوسط التقييم", f"{df_feedback['Rating'].mean():.2f} / 5.0 ⭐")
-    m3.metric(
-        "نسبة الرضا العالي", f"{(df_feedback['Rating'] >= 4).mean() * 100:.1f}%"
-    )
-    st.divider()
-    c1, c2 = st.columns(2)
-    with c1:
-      st.subheader("توزيع النجوم")
-      st.bar_chart(df_feedback["Rating"].value_counts())
-    with c2:
-      st.subheader("المتوسط حسب التصنيف")
-      if "Category" in df_feedback.columns:
-        st.bar_chart(df_feedback.groupby("Category")["Rating"].mean())
-    st.dataframe(df_feedback, use_container_width=True)
-  else:
-    st.warning("لا توجد تقييمات مسجلة حتى الآن.")
