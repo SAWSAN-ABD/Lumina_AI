@@ -166,7 +166,7 @@ JSON structure MUST be as follows:
   "status": "Authentic OR AI-Generated",
   "readiness_score": 92,
   "readiness_status": "READY TO PUBLISH",
-  "search_keywords": "3 to 4 English keywords describing aesthetic style, lighting, color tone (e.g., warm cozy aesthetic coffee moody)",
+  "search_keywords": "3 to 4 English keywords describing aesthetic style, lighting, color tone (e.g., coffee cozy aesthetic moody)",
   "lumina_insight": "انطباع تحليلي ذكي ومختصر عن التكوين البصري والجمالية العامة والروح التي تعكسها الصورة بالعربية",
   "readiness_breakdown": [
      "✔ جودة الصورة والتنسيق البصري: ممتازة",
@@ -272,7 +272,7 @@ CRITICAL: Replace all action contents with REAL generated detailed text in Arabi
         
         st.divider()
 
-        # --- 🌸 قسم عرض الصور المشابهة و Visual Moodboard (المحدث بأسلوب نقي وسريع) ---
+        # --- 🌸 قسم عرض الصور المشابهة و Visual Moodboard (ديناميكي ومضمون 100%) ---
         st.subheader("🖼️ معرض الصور المشابهة ولوحة الإلهام (AI Visual Moodboard)")
         
         search_kw = data.get("search_keywords", "aesthetic visual design")
@@ -280,14 +280,18 @@ CRITICAL: Replace all action contents with REAL generated detailed text in Arabi
         
         keywords_encoded = urllib.parse.quote(search_kw)
         
-        # شبكة عرض الصور المشابهة المستقرة عبر استدعاء الصور بأسلوب Streamlit الأصلي
+        # استخراج أول كلمة مفتاحية للبحث عن موضوع الصورة (مثل: coffee, nature, portrait)
+        first_word = search_kw.split()[0] if search_kw.split() else "aesthetic"
+        first_word_encoded = urllib.parse.quote(first_word)
+        
+        # شبكة عرض الصور المشابهة الديناميكية
         col1, col2, col3, col4 = st.columns(4)
         
         img_urls = [
-            "https://images.unsplash.com/photo-1513519245088-0e12902e5a38?w=500&auto=format&fit=crop&q=80",
-            "https://images.unsplash.com/photo-1507652313519-d4e9174996dd?w=500&auto=format&fit=crop&q=80",
-            "https://images.unsplash.com/photo-1512436991641-6745cdb1723f?w=500&auto=format&fit=crop&q=80",
-            "https://images.unsplash.com/photo-1522335789203-aabd1fc54bc9?w=500&auto=format&fit=crop&q=80"
+            f"https://loremflickr.com/400/500/{first_word_encoded}?lock=1",
+            f"https://loremflickr.com/400/500/{first_word_encoded}?lock=2",
+            f"https://loremflickr.com/400/500/{first_word_encoded}?lock=3",
+            f"https://loremflickr.com/400/500/{first_word_encoded}?lock=4"
         ]
         
         cols = [col1, col2, col3, col4]
