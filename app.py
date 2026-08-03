@@ -7,83 +7,112 @@ from sklearn.cluster import KMeans
 import streamlit as st
 
 # ==========================================
-# 1. PAGE CONFIGURATION & ORIGINAL PINK NUDE CSS
+# 1. PAGE CONFIGURATION & EXACT PINK/WHITE CSS
 # ==========================================
 st.set_page_config(
-    page_title="Lumina Aesthetic AI Assistant",
-    page_icon="✨",
+    page_title="Lumina AI Assistant",
+    page_icon="🌸",
     layout="wide",
     initial_sidebar_state="collapsed"
 )
 
-# Premium Pink Nude & Aesthetic Soft Beige Theme
+# Custom Styling: Matching the exact screenshot design
 st.markdown("""
 <style>
-    /* Global App Background */
+    /* Global App Background - Pure Clean White */
     .stApp {
-        background-color: #FAF5F0 !important;
-        color: #4A3E3D !important;
+        background-color: #FFFFFF !important;
+        color: #2D2D2D !important;
         font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
     }
     
-    /* Header Styling */
+    /* Main Header Card - Pure White with Soft Pink Border */
     .main-header {
-        background: linear-gradient(135deg, #F4E3D7 0%, #E8D1C5 100%);
+        background-color: #FFFFFF !important;
         padding: 35px 20px;
-        border-radius: 24px;
+        border-radius: 28px;
         text-align: center;
         margin-bottom: 30px;
-        border: 1px solid #E2C7B8;
-        box-shadow: 0 8px 20px rgba(226, 199, 184, 0.25);
+        border: 2px solid #F8D7E3 !important;
+        box-shadow: 0 4px 20px rgba(248, 215, 227, 0.2);
     }
     
     .main-header h1 {
-        color: #3D2C2E !important;
-        font-size: 2.3rem !important;
-        font-weight: 700 !important;
-        margin-bottom: 10px !important;
+        color: #2B2B2B !important;
+        font-size: 2.5rem !important;
+        font-weight: 800 !important;
+        margin-bottom: 12px !important;
     }
     
-    .main-header p {
-        color: #6E5A58 !important;
-        font-size: 1.15rem !important;
+    .main-header .sub-title {
+        color: #333333 !important;
+        font-size: 1.25rem !important;
+        font-weight: 700 !important;
+        margin-bottom: 8px !important;
     }
 
-    /* Cards / Containers */
+    .main-header .tags {
+        color: #B85B75 !important;
+        font-size: 1.1rem !important;
+        font-weight: 600 !important;
+    }
+
+    /* Cards / Containers - White with Light Pink Borders */
     .aesthetic-card {
         background-color: #FFFFFF !important;
         border-radius: 20px !important;
-        padding: 28px !important;
+        padding: 26px !important;
         margin-bottom: 25px !important;
-        border: 1px solid #F0E2D8 !important;
-        box-shadow: 0 6px 18px rgba(74, 62, 61, 0.03) !important;
+        border: 1.5px solid #F9E2EB !important;
+        box-shadow: 0 4px 15px rgba(0, 0, 0, 0.02) !important;
     }
 
-    /* Custom Buttons - Pink Nude */
+    .aesthetic-card h3 {
+        color: #8D5B66 !important;
+        font-weight: 700 !important;
+    }
+
+    /* Custom Buttons - Rose / Pink Dust Gradient */
     .stButton>button {
-        background: linear-gradient(135deg, #E0B09A 0%, #D09A83 100%) !important;
+        background: linear-gradient(135deg, #E2889B 0%, #D87088 100%) !important;
         color: #FFFFFF !important;
         border-radius: 16px !important;
-        padding: 14px 32px !important;
+        padding: 12px 28px !important;
         font-size: 1.05rem !important;
-        font-weight: 600 !important;
+        font-weight: 700 !important;
         border: none !important;
-        box-shadow: 0 4px 15px rgba(208, 154, 131, 0.35) !important;
+        box-shadow: 0 4px 14px rgba(216, 112, 136, 0.3) !important;
         transition: all 0.3s ease !important;
         width: 100%;
     }
     
     .stButton>button:hover {
         transform: translateY(-2px) !important;
-        box-shadow: 0 8px 20px rgba(208, 154, 131, 0.45) !important;
+        box-shadow: 0 6px 18px rgba(216, 112, 136, 0.45) !important;
     }
 
-    /* Text inputs & textareas */
+    /* Soft Blue Alert Container (Matching 👉 نحن بانتظارك اركع صورتك) */
+    .soft-blue-box {
+        background-color: #EBF3FA !important;
+        color: #2B72B8 !important;
+        border-radius: 14px !important;
+        padding: 16px 20px !important;
+        font-weight: 600 !important;
+        font-size: 1.1rem !important;
+        margin-bottom: 20px !important;
+        border: 1px solid #D2E4F5 !important;
+    }
+
+    /* Form Inputs */
     .stTextInput input, .stTextArea textarea {
         border-radius: 14px !important;
-        border: 1px solid #E8D7CC !important;
-        background-color: #FAF5F0 !important;
-        color: #3D2C2E !important;
+        border: 1.5px solid #F2D5E0 !important;
+        background-color: #FFFFFF !important;
+        color: #333333 !important;
+    }
+
+    .stTextInput input:focus, .stTextArea textarea:focus {
+        border-color: #E2889B !important;
     }
 </style>
 """, unsafe_allow_html=True)
@@ -150,36 +179,38 @@ def analyze_aesthetic_with_gemini(api_key, image, user_prompt):
         if "429" in error_str or "ResourceExhausted" in error_str or "Quota" in error_str:
             user_friendly_error = "⏳ **تم الوصول للحد الأقصى المؤقت من الحصة المجانية (API Quota Limit).**\n\nيرجى الانتظار دقيقة واحدة ثم إعادة المحاولة، أو التأكد من مفتاح الـ API الخاص بكم."
         else:
-            user_friendly_error = f"حدث خطأ غير متوقع أثناء المعالجة: {error_str}"
+            user_friendly_error = f"حدث خطأ أثناء المعالجة: {error_str}"
         return None, user_friendly_error
 
 
 # ==========================================
-# 4. MAIN INTERFACE (PINK NUDE ELEGANCE)
+# 4. MAIN INTERFACE (EXACT SCREENSHOT MATCH)
 # ==========================================
 
-# Banner Title
+# Banner Header (Matching exact style from picture)
 st.markdown("""
 <div class="main-header">
-    <h1>✨ Lumina Aesthetic AI Assistant</h1>
-    <p>نظام التحليل البصري الجمالي وصناعة المحتوى الإبداعي الاستراتيجي</p>
+    <div style="font-size: 3rem; margin-bottom: 10px;">🌸</div>
+    <h1>Lumina AI</h1>
+    <div class="sub-title">Your Smart Content Assistant | مساعدك الذكي للمحتوى</div>
+    <div class="tags">حلّل • حسّن • أنشئ | Analyze • Improve • Create</div>
 </div>
 """, unsafe_allow_html=True)
 
-# Sidebar (Minimalist Info & Key fallback if needed)
+# Minimal Sidebar
 with st.sidebar:
-    st.markdown("### 🌸 عن النظام")
-    st.info("منصة ذكية تحلل التكوين الجمالي للصور واستخراج الهويات البصرية باستخدام الذكاء الاصطناعي والرؤية الحاسوبية.")
+    st.markdown("### 🌸 Lumina AI")
+    st.info("مساعدك الذكي لتحليل الهويات البصرية والصور بنقرة واحدة.")
     
-    # API Key retrieval (Checks secrets first, fallback to hidden expander)
     api_key = st.secrets.get("GEMINI_API_KEY", "")
     if not api_key:
-        with st.expander("🔑 إعداد المفتاح البرمجي (عند الحاجة)"):
-            api_key = st.text_input("أدخل Gemini API Key:", type="password")
+        with st.expander("🔑 إعداد المفتاح البرمجي"):
+            api_key = st.text_input("أدخل مفتاح Gemini API Key:", type="password")
 
-# Upload Section
+# Upload Area
 st.markdown("<div class='aesthetic-card'>", unsafe_allow_html=True)
-uploaded_file = st.file_uploader("📸 قم برفع الصورة للتحليل البصري الشامل:", type=["jpg", "jpeg", "png", "webp"])
+st.markdown("<div class='soft-blue-box'>👈 نحن بانتظارك، قم برفع صورتك للتحليل الجمالي الاستراتيجي:</div>", unsafe_allow_html=True)
+uploaded_file = st.file_uploader("", type=["jpg", "jpeg", "png", "webp"])
 st.markdown("</div>", unsafe_allow_html=True)
 
 if uploaded_file is not None:
@@ -199,7 +230,7 @@ if uploaded_file is not None:
         colors = extract_dominant_colors(image, num_colors=5)
         
         st.write(f"📐 **نسبة الأبعاد (Aspect Ratio):** `{aspect_ratio}`")
-        st.write(f"💡 **مستوى الإضاءة (Brightness):** `{brightness}/255`")
+        st.write(f"💡 **درجة الإضاءة (Brightness):** `{brightness}/255`")
         
         if is_pin_ideal:
             st.success("✅ أبعاد الصورة مثالية لمنصة Pinterest (نسبة 2:3)!")
@@ -210,7 +241,7 @@ if uploaded_file is not None:
         cols = st.columns(len(colors))
         for idx, hex_code in enumerate(colors):
             with cols[idx]:
-                st.markdown(f"<div style='background-color:{hex_code}; height:42px; border-radius:10px; border:1px solid #E2D2C7;'></div>", unsafe_allow_html=True)
+                st.markdown(f"<div style='background-color:{hex_code}; height:40px; border-radius:10px; border:1px solid #F0D5E1;'></div>", unsafe_allow_html=True)
                 st.caption(hex_code)
                 
         st.markdown("</div>", unsafe_allow_html=True)
@@ -229,7 +260,7 @@ if uploaded_file is not None:
                 ai_result, error = analyze_aesthetic_with_gemini(api_key, image, prompt)
                 
                 if error:
-                    st.warning(error) # الرسالة اللطيفة عند انتهاء الكوتا
+                    st.warning(error)
                 else:
                     st.markdown("---")
                     st.markdown("### 📝 تقرير التحليل الإبداعي")
@@ -237,7 +268,7 @@ if uploaded_file is not None:
     st.markdown("</div>", unsafe_allow_html=True)
 
     # ==========================================
-    # 5. FEEDBACK SYSTEM (At the very bottom!)
+    # 5. FEEDBACK SYSTEM (At the bottom)
     # ==========================================
     st.markdown("<div class='aesthetic-card'>", unsafe_allow_html=True)
     st.markdown("### 💬 تقييم تجربة المستخدم (Feedback Loop)")
@@ -248,7 +279,6 @@ if uploaded_file is not None:
         submit_feedback = st.form_submit_button("إرسال التقييم 📤")
         
         if submit_feedback:
-            # 🔗 ضعي رابط Google Apps Script الخاص بكِ هنا:
             WEBHOOK_URL = "https://script.google.com/macros/s/AKfycby5jFANTTKQSC3xYeo_LXJ1mYsDDPDJgo_TW_M4thXp4Q6vgo_9SxGma_KJAjkAldcy/exec"
             payload = {"rating": rating, "comments": comments, "filename": uploaded_file.name}
             try:
