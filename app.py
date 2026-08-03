@@ -2,6 +2,7 @@ import io
 import json
 from datetime import datetime
 import urllib.request
+import urllib.parse
 
 import pandas as pd
 from PIL import Image, ImageEnhance
@@ -41,15 +42,17 @@ st.markdown("""
     .main-title { color: #d8707c; font-size: 38px; font-weight: 800; margin: 0; }
     .sub-title-1 { color: #4a3b3c; font-size: 18px; margin-top: 6px; font-weight: 600; }
     .sub-title-2 { color: #c05c67; font-size: 14px; margin-top: 4px; font-weight: 500; }
-    .stButton>button, .stDownloadButton>button {
+    .stButton>button, .stDownloadButton>button, .pinterest-btn {
         background: linear-gradient(135deg, #e8a7b0 0%, #d88c9a 100%) !important;
         color: #ffffff !important; font-weight: bold !important; font-size: 15px !important;
         border-radius: 12px !important; border: none !important; padding: 10px 20px !important;
         transition: all 0.3s ease !important; box-shadow: 0 4px 10px rgba(216, 140, 154, 0.25) !important;
+        text-decoration: none; display: inline-block; text-align: center;
     }
-    .stButton>button:hover, .stDownloadButton>button:hover {
+    .stButton>button:hover, .stDownloadButton>button:hover, .pinterest-btn:hover {
         background: linear-gradient(135deg, #d88c9a 0%, #c87483 100%) !important;
         transform: translateY(-2px); box-shadow: 0 6px 15px rgba(216, 140, 154, 0.4) !important;
+        color: #ffffff !important;
     }
     .custom-card {
         background-color: #ffffff; padding: 22px; border-radius: 16px;
@@ -57,10 +60,15 @@ st.markdown("""
         border-bottom: 1px solid #f2e2e4; border-left: 1px solid #f2e2e4;
         margin-bottom: 20px; box-shadow: 0 6px 16px rgba(0, 0, 0, 0.04); color: #2d2424 !important;
     }
-    .stTabs [data-baseweb="tab-list"] { gap: 10px; }
-    .stTabs [data-baseweb="tab"] { background-color: #f2e4e5; border-radius: 10px; color: #5c484a; padding: 10px 22px; font-weight: 600; }
-    .stTabs [aria-selected="true"] { background-color: #d88c9a !important; color: #ffffff !important; font-weight: bold; }
     .stTextInput input, .stSelectbox select, .stTextArea textarea { background-color: #ffffff !important; color: #2d2424 !important; border: 1px solid #e2c2c5 !important; border-radius: 10px !important; }
+    
+    /* تصميم كروت معرض الصور المشابهة */
+    .moodboard-card {
+        border-radius: 12px; overflow: hidden;
+        box-shadow: 0 4px 12px rgba(0,0,0,0.06);
+        border: 1px solid #f0d8db; margin-bottom: 15px;
+        background-color: #ffffff;
+    }
     </style>
 """, unsafe_allow_html=True)
 
@@ -119,7 +127,6 @@ def generate_pdf_report(data):
     buffer.seek(0)
     return buffer
 
-
 # --- الهيدر ---
 st.markdown("""
     <div class="main-header">
@@ -156,7 +163,7 @@ with tab_workspace:
             if not client:
                 st.warning("🌸 يرجى التأكد من إعداد مفتاح الـ API للبدء.")
             else:
-                with st.spinner("جاري استخراج الميزات الجمالية وتحليل الصورة بذكاء... 🌸"):
+                with st.spinner("جاري استخراج الميزات الجمالية وبناء الـ Moodboard الذكي... 🌸"):
                     try:
                         unified_prompt = """You are Lumina AI — an advanced Expert System for aesthetic image analysis and visual content creation.
 Analyze the provided image in detail and return a STRICTLY VALID JSON object (NO MARKDOWN, NO CODEBLOCKS).
@@ -167,6 +174,7 @@ JSON structure MUST be as follows:
   "status": "Authentic OR AI-Generated",
   "readiness_score": 92,
   "readiness_status": "READY TO PUBLISH",
+  "search_keywords": "3 to 4 English keywords describing aesthetic style, lighting, color tone (e.g., warm cozy aesthetic coffee moody)",
   "lumina_insight": "انطباع تحليلي ذكي ومختصر عن التكوين البصري والجمالية العامة والروح التي تعكسها الصورة بالعربية",
   "readiness_breakdown": [
      "✔ جودة الصورة والتنسيق البصري: ممتازة",
@@ -181,7 +189,7 @@ JSON structure MUST be as follows:
      {"title": "🎨 لوحة الألوان والأسلوب الجمالي", "content": "قم باستخراج الأسلوب الجمالي (Aesthetic Mood) وألهم المستخدم بأكواد الألوان السائدة Hex Codes مع توزيعها."},
      {"title": "📌 مولّد دبابيس بينترست الذكية", "content": "صغ عنوان جذاب لـ Pinterest، مع وصف SEO دقيق، وترشيح لاسم اللوحة المناسبة (Board Name)."},
      {"title": "📊 كاشف جودة واستجابة التكوين (Pin-Readiness)", "content": "حلل نسبة أبعاد الصورة (هل هي 2:3؟)، ودرجة وضوح التباين والتركيز لمنصة بينترست مع تقييم للجاهزية."},
-     {"title": "🖼️ البحث البصري عن الصور المشابهة و Moodboard", "content": "اعطِ كلمات مفتاحية دقيقة للبحث البصري عن صور مشابهة، واكتب Prompt سينمائي مفصل باللغة الإنجليزية لتوليد Moodboard مشابه تماماً بـ Midjourney / DALL-E."},
+     {"title": "🖼️ البحث البصري وتوليد الـ Moodboard", "content": "اكتب برومبت سينمائي مفصل باللغة الإنجليزية لتوليد لوحة إلهام مطابقة في Midjourney / DALL-E مع شرح العناصر الجمالية التي تجمع بين الصور المشابهة."},
      {"title": "📖 مولّد القصة وتخيل المشهد البصري", "content": "اكتب قصة بصرية قصيرة ومحفزة للمشهد ومستقبل الصورة لتطوير الفكرة واستخدامها في المحتوى الإبداعي."},
      {"title": "🧠 سيكولوجية الألوان والتأثير العاطفي", "content": "حلل الأثر النفسي والعاطفي للألوان المستخدمة في الصورة وكيف تؤثر على مشاعر الجمهور المستهدف."},
      {"title": "♿ محاكي التباين والسهولة البصرية (Accessibility)", "content": "حلل مدى سهولة قراءة عناصر الصورة لذوي الاحتياجات البصرية، وتوازن التباين بين الضوء والظلال."},
@@ -203,7 +211,7 @@ CRITICAL: Replace all action contents with REAL generated detailed text in Arabi
                         st.session_state["current_image"] = image
                         
                         st.session_state["history"].append({"data": parsed_data, "image": image})
-                        st.success("✨ اكتمل التحليل الجمالي والإنشائي للميزات بنجاح!")
+                        st.success("✨ اكتمل التحليل الجمالي وتوليد لوحة الإلهام البصرية بنجاح!")
                     
                     except Exception as e:
                         err_text = str(e)
@@ -271,8 +279,49 @@ CRITICAL: Replace all action contents with REAL generated detailed text in Arabi
                 )
         
         st.divider()
+
+        # --- 🌸 قسم عرض الصور المشابهة و Visual Moodboard (الميزة الجديدة) ---
+        st.subheader("🖼️ معرض الصور المشابهة ولوحة الإلهام (AI Visual Moodboard)")
         
-        st.subheader("🖼️ أداة المعاينة والمقارنة البصرية (Interactive Enhancer)")
+        search_kw = data.get("search_keywords", "aesthetic visual design")
+        st.write(f"🔍 **الكلمات المفتاحية البصرية المستخرجة:** `{search_kw}`")
+        
+        # إنشاء مصفوفة صور مشابهة حقيقية
+        col1, col2, col3, col4 = st.columns(4)
+        keywords_encoded = urllib.parse.quote(search_kw)
+        
+        # جلب روابط صور عالية الجودة تحاكي النمط المطلوب
+        img_urls = [
+            f"https://source.unsplash.com/400x500/?{keywords_encoded}&sig=1",
+            f"https://source.unsplash.com/400x500/?{keywords_encoded}&sig=2",
+            f"https://source.unsplash.com/400x500/?{keywords_encoded}&sig=3",
+            f"https://source.unsplash.com/400x500/?{keywords_encoded}&sig=4"
+        ]
+        
+        cols = [col1, col2, col3, col4]
+        for idx, col in enumerate(cols):
+            with col:
+                st.markdown(f"""
+                    <div class="moodboard-card">
+                        <img src="{img_urls[idx]}" style="width:100%; height:200px; object-fit:cover; border-radius:10px 10px 0 0;" alt="Similar Image {idx+1}">
+                    </div>
+                """, unsafe_allow_html=True)
+                st.caption(f"صورة إلهام {idx+1} 🌸")
+
+        # زر بحث مباشر على Pinterest
+        pinterest_url = f"https://www.pinterest.com/search/pins/?q={keywords_encoded}"
+        st.markdown(f"""
+            <div style="text-align: center; margin-top: 15px;">
+                <a href="{pinterest_url}" target="_blank" class="pinterest-btn">
+                    📌 تصفح المزيد من الصور المطابقة مباشرة على Pinterest
+                </a>
+            </div>
+        """, unsafe_allow_html=True)
+
+        st.divider()
+
+        # --- قسم مقارنة الصورة الأصلية والمعدلة ---
+        st.subheader("🔧 أداة المعاينة والمقارنة البصرية (Interactive Enhancer)")
         if "current_image" in st.session_state:
             curr_img = st.session_state["current_image"]
             col_opt, col_comp = st.columns([1, 2])
@@ -382,7 +431,7 @@ CRITICAL: Replace all action contents with REAL generated detailed text in Arabi
                     st.success("شكراً لك! تم تسليم تقييمك بنجاح 🎉")
 
     else:
-        st.info("👈 أهلا بك نحن بانتظارك لنبدأ معا")
+        st.info("👈 اهلا بك نحن بانتظارك لنبدأ معا")
 
 # ==========================================
 # TAB 2: ANALYTICS
