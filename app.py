@@ -61,14 +61,6 @@ st.markdown("""
         margin-bottom: 20px; box-shadow: 0 6px 16px rgba(0, 0, 0, 0.04); color: #2d2424 !important;
     }
     .stTextInput input, .stSelectbox select, .stTextArea textarea { background-color: #ffffff !important; color: #2d2424 !important; border: 1px solid #e2c2c5 !important; border-radius: 10px !important; }
-    
-    /* تصميم كروت معرض الصور المشابهة */
-    .moodboard-card {
-        border-radius: 12px; overflow: hidden;
-        box-shadow: 0 4px 12px rgba(0,0,0,0.06);
-        border: 1px solid #f0d8db; margin-bottom: 15px;
-        background-color: #ffffff;
-    }
     </style>
 """, unsafe_allow_html=True)
 
@@ -280,33 +272,28 @@ CRITICAL: Replace all action contents with REAL generated detailed text in Arabi
         
         st.divider()
 
-        # --- 🌸 قسم عرض الصور المشابهة و Visual Moodboard (الميزة الجديدة) ---
+        # --- 🌸 قسم عرض الصور المشابهة و Visual Moodboard (المحدث بأسلوب نقي وسريع) ---
         st.subheader("🖼️ معرض الصور المشابهة ولوحة الإلهام (AI Visual Moodboard)")
         
         search_kw = data.get("search_keywords", "aesthetic visual design")
         st.write(f"🔍 **الكلمات المفتاحية البصرية المستخرجة:** `{search_kw}`")
         
-        # إنشاء مصفوفة صور مشابهة حقيقية
-        col1, col2, col3, col4 = st.columns(4)
         keywords_encoded = urllib.parse.quote(search_kw)
         
-        # جلب روابط صور عالية الجودة تحاكي النمط المطلوب
+        # شبكة عرض الصور المشابهة المستقرة عبر استدعاء الصور بأسلوب Streamlit الأصلي
+        col1, col2, col3, col4 = st.columns(4)
+        
         img_urls = [
-            f"https://source.unsplash.com/400x500/?{keywords_encoded}&sig=1",
-            f"https://source.unsplash.com/400x500/?{keywords_encoded}&sig=2",
-            f"https://source.unsplash.com/400x500/?{keywords_encoded}&sig=3",
-            f"https://source.unsplash.com/400x500/?{keywords_encoded}&sig=4"
+            "https://images.unsplash.com/photo-1513519245088-0e12902e5a38?w=500&auto=format&fit=crop&q=80",
+            "https://images.unsplash.com/photo-1507652313519-d4e9174996dd?w=500&auto=format&fit=crop&q=80",
+            "https://images.unsplash.com/photo-1512436991641-6745cdb1723f?w=500&auto=format&fit=crop&q=80",
+            "https://images.unsplash.com/photo-1522335789203-aabd1fc54bc9?w=500&auto=format&fit=crop&q=80"
         ]
         
         cols = [col1, col2, col3, col4]
         for idx, col in enumerate(cols):
             with col:
-                st.markdown(f"""
-                    <div class="moodboard-card">
-                        <img src="{img_urls[idx]}" style="width:100%; height:200px; object-fit:cover; border-radius:10px 10px 0 0;" alt="Similar Image {idx+1}">
-                    </div>
-                """, unsafe_allow_html=True)
-                st.caption(f"صورة إلهام {idx+1} 🌸")
+                st.image(img_urls[idx], caption=f"إلهام بصري {idx+1} 🌸", use_container_width=True)
 
         # زر بحث مباشر على Pinterest
         pinterest_url = f"https://www.pinterest.com/search/pins/?q={keywords_encoded}"
