@@ -7,7 +7,7 @@ from sklearn.cluster import KMeans
 import streamlit as st
 
 # ==========================================
-# 1. PAGE CONFIGURATION & CUSTOM AESTHETIC CSS
+# 1. PAGE CONFIGURATION & ELEGANT NUDE/PINK CSS
 # ==========================================
 st.set_page_config(
     page_title="Lumina Aesthetic AI Assistant",
@@ -16,52 +16,89 @@ st.set_page_config(
     initial_sidebar_state="expanded"
 )
 
-# Deep Luxury Nude/Beige Theme with High-Contrast Dark Emerald Typography
+# Custom Styling: Premium Pink Nude & Aesthetic Beige Theme
 st.markdown("""
 <style>
     /* Main Background */
     .stApp {
-        background-color: #F7F3ED;
-        color: #1C2826;
+        background-color: #FAF4F0 !important;
         font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
     }
     
     /* Sidebar Styling */
     section[data-testid="stSidebar"] {
-        background-color: #EFE8DE !important;
-        border-right: 1px solid #DCD0C0;
+        background-color: #F4EBE4 !important;
+        border-right: 1px solid #E5D5C8 !important;
     }
     
-    /* Card Container */
+    /* Elegant Title Banner */
+    .main-header {
+        background: linear-gradient(135deg, #E8D5C8 0%, #F2E3D5 100%);
+        padding: 30px;
+        border-radius: 20px;
+        text-align: center;
+        margin-bottom: 25px;
+        border: 1px solid #D8C4B6;
+        box-shadow: 0 4px 15px rgba(216, 196, 182, 0.2);
+    }
+    
+    .main-header h1 {
+        color: #4A3E3D !important;
+        font-size: 2.2rem !important;
+        font-weight: 700 !important;
+        margin-bottom: 8px !important;
+    }
+    
+    .main-header p {
+        color: #7A6968 !important;
+        font-size: 1.1rem !important;
+    }
+    
+    /* Aesthetic Cards Container */
     .aesthetic-card {
-        background-color: #E8DFD5;
-        border-radius: 16px;
-        padding: 24px;
-        margin-bottom: 20px;
-        border: 1px solid #D5C8B8;
-        box-shadow: 0 4px 12px rgba(0,0,0,0.03);
-        color: #1C2826;
+        background-color: #FFFFFF !important;
+        border-radius: 18px !important;
+        padding: 24px !important;
+        margin-bottom: 20px !important;
+        border: 1px solid #EFE4DC !important;
+        box-shadow: 0 6px 18px rgba(74, 62, 61, 0.04) !important;
     }
     
-    /* Typography Override for Mobile High Contrast */
-    h1, h2, h3, h4, h5, h6, p, label, .stMarkdown {
-        color: #1C2826 !important;
+    .aesthetic-card h3 {
+        color: #4A3E3D !important;
+        margin-bottom: 15px !important;
+        font-size: 1.3rem !important;
     }
     
-    /* Accent Buttons */
+    /* Custom Styling for Text & Inputs */
+    p, label, span, div {
+        color: #4A3E3D !important;
+    }
+    
+    /* Custom Pink Nude Buttons */
     .stButton>button {
-        background-color: #2D4A43 !important;
-        color: #F7F3ED !important;
-        border-radius: 12px !important;
-        padding: 12px 28px !important;
+        background: linear-gradient(135deg, #D9B48F 0%, #C89F78 100%) !important;
+        color: #FFFFFF !important;
+        border-radius: 14px !important;
+        padding: 12px 30px !important;
         font-weight: 600 !important;
         border: none !important;
-        transition: all 0.3s ease;
+        box-shadow: 0 4px 12px rgba(200, 159, 120, 0.3) !important;
+        transition: all 0.3s ease !important;
+        width: 100%;
     }
     
     .stButton>button:hover {
-        background-color: #1C302B !important;
-        transform: translateY(-2px);
+        transform: translateY(-2px) !important;
+        box-shadow: 0 6px 16px rgba(200, 159, 120, 0.4) !important;
+    }
+
+    /* Custom Input Boxes */
+    .stTextInput input {
+        border-radius: 12px !important;
+        border: 1px solid #E3D3C6 !important;
+        background-color: #FFFFFF !important;
+        color: #4A3E3D !important;
     }
 </style>
 """, unsafe_allow_html=True)
@@ -125,36 +162,63 @@ def analyze_aesthetic_with_gemini(api_key, image, user_prompt):
 
     except Exception as e:
         error_str = str(e)
-        # تعديل رسالة الخطأ لتظهر بشكل لطيف ومفهوم بدلاً من الأخطاء الطويلة
         if "429" in error_str or "ResourceExhausted" in error_str or "Quota" in error_str:
             user_friendly_error = "⏳ **تم الوصول للحد الأقصى المؤقت من الحصة المجانية (API Quota Limit).**\n\nيرجى الانتظار دقيقة واحدة ثم إعادة المحاولة، أو التأكد من مفتاح الـ API الخاص بكم."
         else:
-            user_friendly_error = f"حدث خطأ غير متوقع أثناء المعالجة: {error_str}"
+            user_friendly_error = f"حدث خطأ أثناء المعالجة: {error_str}"
         return None, user_friendly_error
 
 
 # ==========================================
 # 4. STREAMLIT APPLICATION INTERFACE
 # ==========================================
-st.title("✨ Lumina Aesthetic AI Assistant")
-st.subheader("نظام التحليل البصري الجمالي وصناعة المحتوى الإبداعي")
 
-# Sidebar
+# Elegant Banner Header
+st.markdown("""
+<div class="main-header">
+    <h1>✨ Lumina Aesthetic AI Assistant</h1>
+    <p>نظام التحليل البصري الجمالي وصناعة المحتوى الإبداعي الاستراتيجي</p>
+</div>
+""", unsafe_allow_html=True)
+
+# Sidebar Design
 with st.sidebar:
-    st.header("⚙️ الإعدادات والتحكم")
-    api_key = st.text_input("أدخل مفتاح Gemini API Key:", type="password")
-    st.markdown("---")
-    st.info("نظام ذكي يدمج بين الرؤية الحاسوبية والذكاء الاصطناعي التوليدي لاستخراج الهوية البصرية للصور.")
+    st.markdown("### 🌸 Lumina AI Platform")
+    st.info("نظام ذكي يعتمد على الرؤية الحاسوبية والذكاء الاصطناعي التوليدي لاستخراج الهوية البصرية وتوليد محتوى متناسق.")
+    
+    # Hidden API Key Input inside expander or background
+    api_key = st.secrets.get("GEMINI_API_KEY", "")
+    if not api_key:
+        with st.expander("🔑 إعداد المفتاح البرمجي"):
+            api_key = st.text_input("أدخل مفتاح Gemini API Key:", type="password")
 
-# Upload Section
-uploaded_file = st.file_uploader("📸 قم برفع الصورة للتحليل البصري الاستراتيجي:", type=["jpg", "jpeg", "png", "webp"])
+    st.markdown("---")
+    st.markdown("### 💬 تقييم النظام")
+    with st.form("feedback_form"):
+        rating = st.slider("دقة التحليل الجمالي:", 1, 5, 5)
+        comments = st.text_area("رأيكم وتطويراتكم:")
+        submit_feedback = st.form_submit_button("إرسال التقييم 📤")
+        
+        if submit_feedback:
+            WEBHOOK_URL = "https://script.google.com/macros/s/AKfycby5jFANTTKQSC3xYeo_LXJ1mYsDDPDJgo_TW_M4thXp4Q6vgo_9SxGma_KJAjkAldcy/exec"
+            payload = {"rating": rating, "comments": comments}
+            try:
+                requests.post(WEBHOOK_URL, json=payload, timeout=5)
+                st.success("تم تسليم التقييم بنجاح! 🎉")
+            except:
+                st.info("شكراً لمشاركتك التقييم! ✨")
+
+# File Upload Area
+uploaded_file = st.file_uploader("📸 رفع الصورة للتحليل الجمالي الاستراتيجي:", type=["jpg", "jpeg", "png", "webp"])
 
 if uploaded_file is not None:
     image = Image.open(uploaded_file)
     col1, col2 = st.columns([1, 1])
     
     with col1:
+        st.markdown("<div class='aesthetic-card'>", unsafe_allow_html=True)
         st.image(image, caption="الصورة المرفوعة", use_container_width=True)
+        st.markdown("</div>", unsafe_allow_html=True)
         
     with col2:
         st.markdown("<div class='aesthetic-card'>", unsafe_allow_html=True)
@@ -164,67 +228,39 @@ if uploaded_file is not None:
         colors = extract_dominant_colors(image, num_colors=5)
         
         st.write(f"📐 **نسبة الأبعاد (Aspect Ratio):** `{aspect_ratio}`")
-        st.write(f"💡 **مستوى الإضاءة العامة (Brightness):** `{brightness}/255`")
+        st.write(f"💡 **درجة الإضاءة (Brightness):** `{brightness}/255`")
         
         if is_pin_ideal:
-            st.success("✅ أبعاد الصورة مثالية لمنصة Pinterest (نسبة 2:3)!")
+            st.success("✅ أبعاد الصورة مثالية لمنصة Pinterest (2:3)!")
         else:
-            st.info("💡 نصيحة: للحصول على أفضل تفاعل على Pinterest يُفضل قص الصورة بنسبة طولية (2:3).")
+            st.info("💡 نصيحة: يُفضل قص الصورة بنسبة طولية (2:3) للتألق على Pinterest.")
             
         st.markdown("#### 🎨 لوحة الألوان السائدة (K-Means Palette):")
         cols = st.columns(len(colors))
         for idx, hex_code in enumerate(colors):
             with cols[idx]:
-                st.markdown(f"<div style='background-color:{hex_code}; height:45px; border-radius:8px; border:1px solid #ccc;'></div>", unsafe_allow_html=True)
+                st.markdown(f"<div style='background-color:{hex_code}; height:40px; border-radius:10px; border:1px solid #E5D5C8;'></div>", unsafe_allow_html=True)
                 st.caption(hex_code)
                 
         st.markdown("</div>", unsafe_allow_html=True)
 
-    st.markdown("---")
-    
-    # AI Execution
-    st.markdown("### 🔮 التحليل الإبداعي والاستراتيجي بالذكاء الاصطناعي")
+    # AI Execution Section
+    st.markdown("<div class='aesthetic-card'>", unsafe_allow_html=True)
+    st.markdown("### 🔮 التحليل الإبداعي بالذكاء الاصطناعي")
     user_note = st.text_input("ملاحظات إضافية للذكاء الاصطناعي (اختياري):", placeholder="مثال: ركز على الهوية الفخمة أو كابشن للموضة...")
     
     if st.button("🚀 بدء التحليل الجمالي الشامل"):
         if not api_key:
-            st.error("⚠️ يرجى إدخال مفتاح الـ API في القائمة الجانبية أولاً!")
+            st.error("⚠️ يرجى إدخال مفتاح الـ API أولاً من القائمة الجانبية!")
         else:
             with st.spinner("جاري تحليل العناصر الجمالية وبناء الاستراتيجية..."):
                 prompt = f"قم بتحليل الصورة استراتيجياً وجمالياً. ملاحظات: {user_note}"
                 ai_result, error = analyze_aesthetic_with_gemini(api_key, image, prompt)
                 
                 if error:
-                    st.warning(error) # إظهار تنبيه لطيف ومصمم برمجياً
+                    st.warning(error)
                 else:
-                    st.markdown("<div class='aesthetic-card'>", unsafe_allow_html=True)
+                    st.markdown("---")
                     st.markdown("### 📝 تقرير التحليل الإبداعي")
                     st.write(ai_result)
-                    st.markdown("</div>", unsafe_allow_html=True)
-
-    # ==========================================
-    # 5. SERVERLESS FEEDBACK SYSTEM (Google Sheets Integration)
-    # ==========================================
-    st.markdown("---")
-    st.markdown("### 💬 تقييم تجربة المستخدم (Feedback Loop)")
-    
-    with st.form("feedback_form"):
-        rating = st.slider("تقييمك لدقة التحليل الجمالي:", 1, 5, 5)
-        comments = st.text_area("ملاحظاتك لتطوير المنصة:")
-        submit_feedback = st.form_submit_button("إرسال التقييم 📤")
-        
-        if submit_feedback:
-            # 🔗 ضعي رابط الـ Google Apps Script الخاص بكِ بين التنصيص هنا:
-            WEBHOOK_URL = "https://script.google.com/macros/s/AKfycby5jFANTTKQSC3xYeo_LXJ1mYsDDPDJgo_TW_M4thXp4Q6vgo_9SxGma_KJAjkAldcy/exec"
-            
-            payload = {
-                "rating": rating,
-                "comments": comments,
-                "filename": uploaded_file.name
-            }
-            try:
-                response = requests.post(WEBHOOK_URL, json=payload, timeout=5)
-                st.balloons()
-                st.success("شكرًا لك! تم تسجيل تقييمك بنجاح في قاعدة البيانات السحابية (Google Sheets) 🎉")
-            except Exception as e:
-                st.info("تم حفظ تقييمك محلياً، شكرًا لمشاركتك! ✨")
+    st.markdown("</div>", unsafe_allow_html=True)
