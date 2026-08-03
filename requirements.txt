@@ -5,3 +5,7 @@ pandas
 st-gsheets-connection
 reportlab
 streamlit-image-comparison
+google-generativeai
+numpy
+scikit-learn
+requests
