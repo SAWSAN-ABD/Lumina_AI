@@ -27,21 +27,32 @@ st.set_page_config(
     initial_sidebar_state="expanded"
 )
 
-# رابط سكربت جوجل للتقييمات
 GOOGLE_SCRIPT_URL = "https://script.google.com/macros/s/AKfycby5jFANTTKQSC3xYeo_LXJ1mYsDDPDJgo_TW_M4thXp4Q6vgo_9SxGma_KJAjkAldcy/exec"
 
+# --- تحسين الـ CSS والتصميم الجمالي ---
 st.markdown("""
     <style>
     .stApp { background-color: #fcf8f8 !important; color: #2d2424 !important; }
     [data-testid="stSidebar"] { background-color: #f7eded !important; border-left: 1px solid #ebd4d6 !important; }
+    
     .main-header {
         background: linear-gradient(135deg, #ffffff 0%, #fbf0f2 100%);
-        padding: 25px 20px; border-radius: 20px; border: 2px solid #e8c5c8;
-        margin-bottom: 25px; text-align: center; box-shadow: 0 8px 20px rgba(216, 140, 154, 0.12);
+        padding: 30px 20px; border-radius: 24px; border: 2px solid #e8c5c8;
+        margin-bottom: 25px; text-align: center; box-shadow: 0 10px 25px rgba(216, 140, 154, 0.12);
     }
-    .main-title { color: #d8707c; font-size: 38px; font-weight: 800; margin: 0; }
-    .sub-title-1 { color: #4a3b3c; font-size: 18px; margin-top: 6px; font-weight: 600; }
+    .main-title { color: #d8707c; font-size: 42px; font-weight: 800; margin: 0; }
+    .sub-title-1 { color: #4a3b3c; font-size: 19px; margin-top: 6px; font-weight: 600; }
     .sub-title-2 { color: #c05c67; font-size: 14px; margin-top: 4px; font-weight: 500; }
+    
+    /* Hero Summary Card */
+    .hero-card {
+        background: linear-gradient(135deg, #ffffff 0%, #fff7f8 100%);
+        padding: 25px; border-radius: 20px; border: 1.5px solid #ebd4d6;
+        box-shadow: 0 8px 20px rgba(216, 140, 154, 0.1); margin-bottom: 25px;
+    }
+    .hero-metric-title { font-size: 13px; color: #8c7375; font-weight: 600; text-transform: uppercase; }
+    .hero-metric-val { font-size: 22px; color: #d8707c; font-weight: 800; margin-top: 4px; }
+    
     .stButton>button, .stDownloadButton>button, .pinterest-btn {
         background: linear-gradient(135deg, #e8a7b0 0%, #d88c9a 100%) !important;
         color: #ffffff !important; font-weight: bold !important; font-size: 15px !important;
@@ -54,6 +65,7 @@ st.markdown("""
         transform: translateY(-2px); box-shadow: 0 6px 15px rgba(216, 140, 154, 0.4) !important;
         color: #ffffff !important;
     }
+    
     .custom-card {
         background-color: #ffffff; padding: 22px; border-radius: 16px;
         border-right: 5px solid #d88c9a; border-top: 1px solid #f2e2e4;
@@ -61,6 +73,13 @@ st.markdown("""
         margin-bottom: 20px; box-shadow: 0 6px 16px rgba(0, 0, 0, 0.04); color: #2d2424 !important;
     }
     .stTextInput input, .stSelectbox select, .stTextArea textarea { background-color: #ffffff !important; color: #2d2424 !important; border: 1px solid #e2c2c5 !important; border-radius: 10px !important; }
+    
+    /* Social Media Rating Badges */
+    .sm-badge {
+        background-color: #fff0f2; border: 1px solid #f4c2c7; padding: 10px 15px;
+        border-radius: 12px; margin-bottom: 10px; font-weight: 600; color: #4a3b3c;
+        display: flex; justify-content: space-between; align-items: center;
+    }
     </style>
 """, unsafe_allow_html=True)
 
@@ -72,6 +91,8 @@ MODEL_NAME = "gemini-2.5-flash"
 
 if "history" not in st.session_state:
     st.session_state["history"] = []
+if "selected_action_idx" not in st.session_state:
+    st.session_state["selected_action_idx"] = 0
 
 # دالة توليد PDF
 def generate_pdf_report(data):
@@ -124,12 +145,19 @@ st.markdown("""
     <div class="main-header">
         <h1 class="main-title">🌸 Lumina AI</h1>
         <div class="sub-title-1">Your Smart Content Assistant | مساعدك الذكي للمحتوى</div>
-        <div class="sub-title-2">Analyze • Improve • Create &nbsp;|&nbsp; حلّل • حسّن • أنشئ</div>
+        <div class="sub-title-2">Analyze • Compare • Improve • Create &nbsp;|&nbsp; حلّل • قارن • حسّن • أنشئ</div>
     </div>
 """, unsafe_allow_html=True)
 
-tab_workspace, tab_analytics = st.tabs(["🚀 منصة التحليل والإنشاء", "📊 تقييمات المستخدمين (Analytics)"])
+tab_workspace, tab_compare, tab_analytics = st.tabs([
+    "🚀 منصة التحليل والإنشاء", 
+    "⚖️ مقارنة صورتين بالذكاء الاصطناعي", 
+    "📊 تقييمات المستخدمين (Analytics)"
+])
 
+# ==========================================
+# TAB 1: WORKSPACE
+# ==========================================
 with tab_workspace:
     st.sidebar.header("🌸 رفع الأصل البصري")
     
@@ -145,7 +173,7 @@ with tab_workspace:
             st.session_state["lumina_data"] = st.session_state["history"][selected_hist]["data"]
             st.session_state["current_image"] = st.session_state["history"][selected_hist]["image"]
 
-    uploaded_file = st.sidebar.file_uploader("اختر صورة جديدة للتحليل", type=["jpg", "jpeg", "png", "webp"])
+    uploaded_file = st.sidebar.file_uploader("اختر صورة جديدة للتحليل", type=["jpg", "jpeg", "png", "webp"], key="single_up")
     
     if uploaded_file is not None:
         image = Image.open(uploaded_file).convert("RGB")
@@ -155,7 +183,7 @@ with tab_workspace:
             if not client:
                 st.warning("🌸 يرجى التأكد من إعداد مفتاح الـ API للبدء.")
             else:
-                with st.spinner("جاري استخراج الميزات الجمالية وبناء الـ Moodboard الذكي... 🌸"):
+                with st.spinner("جاري استخراج الميزات الجمالية وتقييم المنصات وبناء الـ Moodboard... 🌸"):
                     try:
                         unified_prompt = """You are Lumina AI — an advanced Expert System for aesthetic image analysis and visual content creation.
 Analyze the provided image in detail and return a STRICTLY VALID JSON object (NO MARKDOWN, NO CODEBLOCKS).
@@ -166,6 +194,13 @@ JSON structure MUST be as follows:
   "status": "Authentic OR AI-Generated",
   "readiness_score": 92,
   "readiness_status": "READY TO PUBLISH",
+  "best_platform": "Instagram OR LinkedIn OR TikTok OR Pinterest",
+  "platform_ratings": {
+     "Instagram": "⭐⭐⭐⭐⭐",
+     "LinkedIn": "⭐⭐⭐",
+     "Facebook": "⭐⭐⭐⭐",
+     "TikTok": "⭐⭐⭐⭐⭐"
+  },
   "search_keywords": "3 to 4 English keywords describing aesthetic style, lighting, color tone (e.g., coffee cozy aesthetic moody)",
   "lumina_insight": "انطباع تحليلي ذكي ومختصر عن التكوين البصري والجمالية العامة والروح التي تعكسها الصورة بالعربية",
   "readiness_breakdown": [
@@ -178,15 +213,15 @@ JSON structure MUST be as follows:
      "تأثير توزيع العناصر والإضاءة"
   ],
   "smart_actions": [
-     {"title": "🎨 لوحة الألوان والأسلوب الجمالي", "content": "قم باستخراج الأسلوب الجمالي (Aesthetic Mood) وألهم المستخدم بأكواد الألوان السائدة Hex Codes مع توزيعها."},
-     {"title": "📌 مولّد دبابيس بينترست الذكية", "content": "صغ عنوان جذاب لـ Pinterest، مع وصف SEO دقيق، وترشيح لاسم اللوحة المناسبة (Board Name)."},
-     {"title": "📊 كاشف جودة واستجابة التكوين (Pin-Readiness)", "content": "حلل نسبة أبعاد الصورة (هل هي 2:3؟)، ودرجة وضوح التباين والتركيز لمنصة بينترست مع تقييم للجاهزية."},
-     {"title": "🖼️ البحث البصري وتوليد الـ Moodboard", "content": "اكتب برومبت سينمائي مفصل باللغة الإنجليزية لتوليد لوحة إلهام مطابقة في Midjourney / DALL-E مع شرح العناصر الجمالية التي تجمع بين الصور المشابهة."},
-     {"title": "📖 مولّد القصة وتخيل المشهد البصري", "content": "اكتب قصة بصرية قصيرة ومحفزة للمشهد ومستقبل الصورة لتطوير الفكرة واستخدامها في المحتوى الإبداعي."},
-     {"title": "🧠 سيكولوجية الألوان والتأثير العاطفي", "content": "حلل الأثر النفسي والعاطفي للألوان المستخدمة في الصورة وكيف تؤثر على مشاعر الجمهور المستهدف."},
-     {"title": "♿ محاكي التباين والسهولة البصرية (Accessibility)", "content": "حلل مدى سهولة قراءة عناصر الصورة لذوي الاحتياجات البصرية، وتوازن التباين بين الضوء والظلال."},
-     {"title": "✒️ الأناقة البصرية للخطوط والتباين", "content": "اقترح أنماط خطوط (Typography Pairs) تتناسب مع هذا التكوين البصري مع ألوان النصوص المتباينة."},
-     {"title": "👔 النسخة الرسمية والهاشتاغات", "content": "صغ كابشن رسمياً ملائماً للمنصات الاحترافية مثل LinkedIn مع هاشتاغات استراتيجية قوية."}
+     {"title": "🎨 لوحة الألوان والأسلوب الجمالي", "icon": "🎨", "content": "قم باستخراج الأسلوب الجمالي (Aesthetic Mood) وألهم المستخدم بأكواد الألوان السائدة Hex Codes مع توزيعها."},
+     {"title": "📌 مولّد دبابيس بينترست الذكية", "icon": "📌", "content": "صغ عنوان جذاب لـ Pinterest، مع وصف SEO دقيق، وترشيح لاسم اللوحة المناسبة (Board Name)."},
+     {"title": "📊 كاشف جودة واستجابة التكوين (Pin-Readiness)", "icon": "📊", "content": "حلل نسبة أبعاد الصورة (هل هي 2:3؟)، ودرجة وضوح التباين والتركيز لمنصة بينترست مع تقييم للجاهزية."},
+     {"title": "🖼️ البحث البصري وتوليد الـ Moodboard", "icon": "🖼️", "content": "اكتب برومبت سينمائي مفصل باللغة الإنجليزية لتوليد لوحة إلهام مطابقة في Midjourney / DALL-E مع شرح العناصر الجمالية التي تجمع بين الصور المشابهة."},
+     {"title": "📖 مولّد القصة وتخيل المشهد البصري", "icon": "📖", "content": "اكتب قصة بصرية قصيرة ومحفزة للمشهد ومستقبل الصورة لتطوير الفكرة واستخدامها في المحتوى الإبداعي."},
+     {"title": "🧠 سيكولوجية الألوان والتأثير العاطفي", "icon": "🧠", "content": "حلل الأثر النفسي والعاطفي للألوان المستخدمة في الصورة وكيف تؤثر على مشاعر الجمهور المستهدف."},
+     {"title": "♿ محاكي التباين والسهولة البصرية (Accessibility)", "icon": "♿", "content": "حلل مدى سهولة قراءة عناصر الصورة لذوي الاحتياجات البصرية، وتوازن التباين بين الضوء والظلال."},
+     {"title": "✒️ الأناقة البصرية للخطوط والتباين", "icon": "✒️", "content": "اقترح أنماط خطوط (Typography Pairs) تتناسب مع هذا التكوين البصري مع ألوان النصوص المتباينة."},
+     {"title": "👔 النسخة الرسمية والهاشتاغات", "icon": "👔", "content": "صغ كابشن رسمياً ملائماً للمنصات الاحترافية مثل LinkedIn مع هاشتاغات استراتيجية قوية."}
   ]
 }
 CRITICAL: Replace all action contents with REAL generated detailed text in Arabic (and English where specified) specific to the uploaded image."""
@@ -203,53 +238,77 @@ CRITICAL: Replace all action contents with REAL generated detailed text in Arabi
                         st.session_state["current_image"] = image
                         
                         st.session_state["history"].append({"data": parsed_data, "image": image})
-                        st.success("✨ اكتمل التحليل الجمالي وتوليد لوحة الإلهام البصرية بنجاح!")
+                        st.success("✨ اكتمل التحليل الجمالي والـ UI Dashboard بنجاح!")
                     
                     except Exception as e:
                         err_text = str(e)
                         if "429" in err_text or "Quota" in err_text or "ResourceExhausted" in err_text:
-                            st.info("⏳ **تم الوصول للحد الأقصى المؤقت للحصة المجانية (API Limit).**\n\nيرجى الانتظار دقيقة واحدة وإعادة الضغط، أو التأكد من المفتاح الخاص بكِ 🌸")
+                            st.info("⏳ **تم الوصول للحد الأقصى المؤقت للحصة المجانية (API Limit).**\n\nيرجى الانتظار دقيقة واحدة وإعادة الضغط 🌸")
                         else:
-                            st.warning("🌸 تعذر استكمال التحليل لحظياً، يرجى المحاولة مرة أخرى أو التأكد من جودة الصورة المرفوعة.")
+                            st.warning("🌸 تعذر استكمال التحليل لحظياً، يرجى المحاولة مرة أخرى.")
 
     if "lumina_data" in st.session_state:
         data = st.session_state["lumina_data"]
         
+        # --- 🌟 Hero Summary Card ---
         st.markdown(f"""
-            <div class="custom-card">
-                <h4 style="color: #c05c67; margin-top:0; font-weight: 700;">🧠 Lumina Insight (الرؤية الذكية):</h4>
-                <p style="font-size: 16.5px; line-height: 1.6; color: #2d2424; margin-bottom:0;">{data.get('lumina_insight', '')}</p>
+            <div class="hero-card">
+                <div style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 15px;">
+                    <div>
+                        <div class="hero-metric-title">📁 التصنيف (Category)</div>
+                        <div class="hero-metric-val">{data.get('category', 'General')}</div>
+                    </div>
+                    <div>
+                        <div class="hero-metric-title">🛡️ نسبة الأصالة (Authenticity)</div>
+                        <div class="hero-metric-val">{data.get('authenticity_score', '95%')} <span style="font-size:14px; font-weight:normal;">({data.get('status', 'Authentic')})</span></div>
+                    </div>
+                    <div>
+                        <div class="hero-metric-title">📈 جاهزية النشر (Readiness)</div>
+                        <div class="hero-metric-val">{data.get('readiness_score', 85)}%</div>
+                    </div>
+                    <div>
+                        <div class="hero-metric-title">🌟 المنصة الأنسب (Best Platform)</div>
+                        <div class="hero-metric-val" style="color:#c05c67;">{data.get('best_platform', 'Instagram')}</div>
+                    </div>
+                </div>
+                <hr style="border: 0.5px solid #f2e2e4; margin: 18px 0;">
+                <div>
+                    <strong style="color: #c05c67;">🧠 Lumina Insight:</strong>
+                    <span style="color: #4a3b3c; font-size: 15.5px; margin-right: 6px;">{data.get('lumina_insight', '')}</span>
+                </div>
             </div>
         """, unsafe_allow_html=True)
         
-        col_analysis, col_report = st.columns(2)
+        # --- 📱 Social Media Advisor & Reports ---
+        col_sm, col_report = st.columns([1, 1])
         
-        with col_analysis:
+        with col_sm:
             st.markdown("""
                 <div class="custom-card">
-                    <h3 style="color: #c05c67; margin-top:0; font-weight: 700;">🔍 قسم التحليل البصري والأصالة</h3>
+                    <h4 style="color: #c05c67; margin-top:0; font-weight: 700;">📱 Social Media Advisor (تقييم المنصات)</h4>
+                    <p style="font-size: 13px; color: #7a6869;">مدى ملاءمة الصورة لكل منصة تواصل اجتماعي:</p>
                 </div>
             """, unsafe_allow_html=True)
-            st.markdown(f"**نوع المحتوى:** `{data.get('category')}`")
-            st.markdown(f"**نسبة الأصالة:** `{data.get('authenticity_score')}` ({data.get('status')})")
-            st.write("**الأدلة البصرية والجنائية:**")
-            for r in data.get('reasoning', []):
-                st.write(f"• {r}")
+            
+            ratings = data.get("platform_ratings", {
+                "Instagram": "⭐⭐⭐⭐⭐", "LinkedIn": "⭐⭐⭐", "Facebook": "⭐⭐⭐⭐", "TikTok": "⭐⭐⭐⭐⭐"
+            })
+            
+            for platform, stars in ratings.items():
+                st.markdown(f"""
+                    <div class="sm-badge">
+                        <span><strong>{platform}</strong></span>
+                        <span style="color: #d8707c; font-size: 16px;">{stars}</span>
+                    </div>
+                """, unsafe_allow_html=True)
                 
         with col_report:
             st.markdown("""
                 <div class="custom-card">
-                    <h3 style="color: #c05c67; margin-top:0; font-weight: 700;">📊 جاهزية النشر والتقرير الفني</h3>
+                    <h4 style="color: #c05c67; margin-top:0; font-weight: 700;">📄 التقرير الفني والتنزيل</h4>
                 </div>
             """, unsafe_allow_html=True)
-            score = data.get('readiness_score', 85)
-            st.metric(label="Publishing Readiness Score", value=f"{score}%", delta=data.get('readiness_status', 'READY TO PUBLISH'))
-            st.progress(score / 100)
             
-            st.write("**تفاصيل التقييم التقديري:**")
-            for item in data.get('readiness_breakdown', []):
-                st.write(f"- {item}")
-                
             col_pdf, col_txt = st.columns(2)
             with col_pdf:
                 pdf_bytes = generate_pdf_report(data)
@@ -261,7 +320,7 @@ CRITICAL: Replace all action contents with REAL generated detailed text in Arabi
                     use_container_width=True
                 )
             with col_txt:
-                report_str = f"LUMINA REPORT\nCategory: {data.get('category')}\nScore: {data.get('readiness_score')}%\nInsight: {data.get('lumina_insight')}"
+                report_str = f"LUMINA REPORT\nCategory: {data.get('category')}\nScore: {data.get('readiness_score')}%\nBest Platform: {data.get('best_platform')}\nInsight: {data.get('lumina_insight')}"
                 st.download_button(
                     label="📝 تنزيل ملف TXT",
                     data=report_str,
@@ -269,24 +328,28 @@ CRITICAL: Replace all action contents with REAL generated detailed text in Arabi
                     mime="text/plain",
                     use_container_width=True
                 )
-        
+                
+            # Expanders للتفاصيل العميقة لتقليل التمرير
+            with st.expander("🔍 تفاصيل الأدلة البصرية والأصالة (Reasoning)"):
+                for r in data.get('reasoning', []):
+                    st.write(f"• {r}")
+                    
+            with st.expander("📊 تفاصيل جاهزية النشر (Readiness Breakdown)"):
+                for item in data.get('readiness_breakdown', []):
+                    st.write(f"- {item}")
+
         st.divider()
 
-        # --- 🌸 قسم عرض الصور المشابهة و Visual Moodboard (ديناميكي ومضمون 100%) ---
+        # --- 🌸 Visual Moodboard ---
         st.subheader("🖼️ معرض الصور المشابهة ولوحة الإلهام (AI Visual Moodboard)")
-        
         search_kw = data.get("search_keywords", "aesthetic visual design")
         st.write(f"🔍 **الكلمات المفتاحية البصرية المستخرجة:** `{search_kw}`")
         
         keywords_encoded = urllib.parse.quote(search_kw)
-        
-        # استخراج أول كلمة مفتاحية للبحث عن موضوع الصورة (مثل: coffee, nature, portrait)
         first_word = search_kw.split()[0] if search_kw.split() else "aesthetic"
         first_word_encoded = urllib.parse.quote(first_word)
         
-        # شبكة عرض الصور المشابهة الديناميكية
         col1, col2, col3, col4 = st.columns(4)
-        
         img_urls = [
             f"https://loremflickr.com/400/500/{first_word_encoded}?lock=1",
             f"https://loremflickr.com/400/500/{first_word_encoded}?lock=2",
@@ -299,7 +362,6 @@ CRITICAL: Replace all action contents with REAL generated detailed text in Arabi
             with col:
                 st.image(img_urls[idx], caption=f"إلهام بصري {idx+1} 🌸", use_container_width=True)
 
-        # زر بحث مباشر على Pinterest
         pinterest_url = f"https://www.pinterest.com/search/pins/?q={keywords_encoded}"
         st.markdown(f"""
             <div style="text-align: center; margin-top: 15px;">
@@ -311,55 +373,69 @@ CRITICAL: Replace all action contents with REAL generated detailed text in Arabi
 
         st.divider()
 
-        # --- قسم مقارنة الصورة الأصلية والمعدلة ---
-        st.subheader("🔧 أداة المعاينة والمقارنة البصرية (Interactive Enhancer)")
+        # --- 🔧 Interactive Enhancer (Full Width) ---
+        st.subheader("🔧 أداة المعاينة والمقارنة البصرية (Full-Width Interactive Enhancer)")
         if "current_image" in st.session_state:
             curr_img = st.session_state["current_image"]
-            col_opt, col_comp = st.columns([1, 2])
             
-            with col_opt:
-                st.write("🔧 **تحسين بصري سريع:**")
+            c_s1, c_s2 = st.columns(2)
+            with c_s1:
                 contrast_val = st.slider("التباين (Contrast)", 0.5, 2.0, 1.2)
+            with c_s2:
                 sharp_val = st.slider("الوضوح (Sharpness)", 0.5, 3.0, 1.5)
                 
-                enhancer = ImageEnhance.Contrast(curr_img)
-                img_mod = enhancer.enhance(contrast_val)
-                enhancer2 = ImageEnhance.Sharpness(img_mod)
-                img_mod = enhancer2.enhance(sharp_val)
-                
-            with col_comp:
-                st.write("↔️ **قارني بين الصورة الأصلية والمعدلة:**")
-                try:
-                    if image_comparison:
-                        image_comparison(
-                            img1=curr_img,
-                            img2=img_mod,
-                            label1="الصورة الأصلية",
-                            label2="المعدلة بـ Lumina"
-                        )
-                    else:
-                        st.image([curr_img, img_mod], caption=["الصورة الأصلية", "المعدلة تلقائياً"], width=250)
-                except Exception:
-                    col_a, col_b = st.columns(2)
-                    with col_a:
-                        st.image(curr_img, caption="الصورة الأصلية", use_container_width=True)
-                    with col_b:
-                        st.image(img_mod, caption="المعدلة بـ Lumina", use_container_width=True)
+            enhancer = ImageEnhance.Contrast(curr_img)
+            img_mod = enhancer.enhance(contrast_val)
+            enhancer2 = ImageEnhance.Sharpness(img_mod)
+            img_mod = enhancer2.enhance(sharp_val)
+            
+            try:
+                if image_comparison:
+                    image_comparison(
+                        img1=curr_img,
+                        img2=img_mod,
+                        label1="الصورة الأصلية",
+                        label2="المعدلة بـ Lumina"
+                    )
+                else:
+                    st.image([curr_img, img_mod], caption=["الصورة الأصلية", "المعدلة تلقائياً"], use_container_width=True)
+            except Exception:
+                st.image([curr_img, img_mod], caption=["الصورة الأصلية", "المعدلة تلقائياً"], use_container_width=True)
 
         st.divider()
         
-        # --- قسم الميزات الـ 9 المحددة ---
-        st.subheader("✨ الميزات الاستراتيجية وصناعة المحتوى الجمالي")
-        actions = data.get("smart_actions", [])
-        titles = [act["title"] for act in actions]
+        # --- ✨ Smart Actions (Clickable Cards Grid UI) ---
+        st.subheader("✨ الميزات الاستراتيجية وصناعة المحتوى الجمالي (Smart Actions)")
+        st.write("اضغطي على أي بطاقة لعرض نتائج التوليد الخاصة بها في الأسفل:")
         
-        selected_tab = st.radio("اختر الميزة المطلوبة لعرض التقرير والتوليد:", titles, horizontal=True)
-        for act in actions:
-            if act["title"] == selected_tab:
-                st.text_area("النتيجة والتوصيات المولدة تلقائياً:", value=act["content"], height=220)
-                
+        actions = data.get("smart_actions", [])
+        
+        # عرض الميزات 9 على شكل Grid كروت تفاعلية
+        grid_cols = st.columns(3)
+        for idx, act in enumerate(actions):
+            col_target = grid_cols[idx % 3]
+            icon = act.get("icon", "✨")
+            title = act.get("title", f"ميزة {idx+1}")
+            
+            is_selected = (st.session_state["selected_action_idx"] == idx)
+            btn_label = f"{'🌸 ' if is_selected else ''}{icon} {title}"
+            
+            with col_target:
+                if st.button(btn_label, key=f"btn_act_{idx}", use_container_width=True):
+                    st.session_state["selected_action_idx"] = idx
+
+        # عرض محتوى الكرت المحدد في الأسفل
+        selected_act = actions[st.session_state["selected_action_idx"]]
+        st.markdown(f"""
+            <div class="custom-card" style="margin-top: 15px;">
+                <h4 style="color: #c05c67; margin-top:0;">{selected_act.get('icon', '✨')} {selected_act.get('title')}</h4>
+            </div>
+        """, unsafe_allow_html=True)
+        st.text_area("النتيجة والتوصيات المولدة تلقائياً:", value=selected_act["content"], height=220)
+
         st.divider()
         
+        # --- 💬 Ask Lumina ---
         st.subheader("💬 Ask Lumina (المستشار الذكي)")
         with st.form("ask_lumina_form"):
             selected_option = st.selectbox(
@@ -396,6 +472,7 @@ CRITICAL: Replace all action contents with REAL generated detailed text in Arabi
 
         st.divider()
         
+        # --- ⭐ Feedback Form ---
         st.subheader("⭐ شاركنا رأيك وتقييمك للتجربة")
         with st.form("feedback_form"):
             rating = st.slider("تقييمك للدقة والجودة (من 1 إلى 5 نجوم):", 1, 5, 5)
@@ -422,10 +499,63 @@ CRITICAL: Replace all action contents with REAL generated detailed text in Arabi
                     st.success("شكراً لك! تم تسليم تقييمك بنجاح 🎉")
 
     else:
-        st.info("👈 اهلا بك نحن بانتظارك لنبدأ معا")
+        st.info("👈اهلا بك نحن بانتظارك لنبدأ معا")
 
 # ==========================================
-# TAB 2: ANALYTICS
+# TAB 2: AI IMAGE COMPARISON (الميزة الجديدة ⚖️)
+# ==========================================
+with tab_compare:
+    st.header("⚖️ مقارنة صورتين بالذكاء الاصطناعي (AI Image Comparison)")
+    st.write(" ارفعي صورتين وسيحدد لكِ Lumina أيّهما الأفضل، الأنسب للإنستغرام، الأكثر احترافية وأصالة مع التحليل التفصيلي!")
+    
+    col_img1, col_img2 = st.columns(2)
+    with col_img1:
+        file1 = st.file_uploader("رفع الصورة الأولى (Image A)", type=["jpg", "jpeg", "png", "webp"], key="comp_img1")
+    with col_img2:
+        file2 = st.file_uploader("رفع الصورة الثانية (Image B)", type=["jpg", "jpeg", "png", "webp"], key="comp_img2")
+        
+    if file1 and file2:
+        img1 = Image.open(file1).convert("RGB")
+        img2 = Image.open(file2).convert("RGB")
+        
+        c_show1, c_show2 = st.columns(2)
+        with c_show1:
+            st.image(img1, caption="الصورة (A)", use_container_width=True)
+        with c_show2:
+            st.image(img2, caption="الصورة (B)", use_container_width=True)
+            
+        if st.button("⚖️ تشغيل المقارنة الذكية الشاملة", type="primary", use_container_width=True):
+            if not client:
+                st.warning("🌸 يرجى التأكد من إعداد مفتاح الـ API للبدء.")
+            else:
+                with st.spinner("جاري المقارنة والتحليل البصري بين الصورتين... 🌸"):
+                    try:
+                        compare_prompt = """You are Lumina AI. Compare the two provided images (Image A is first, Image B is second).
+Provide a structured, beautifully formatted Arabic analysis answering:
+1. 🏆 **أيهما أفضل إجمالاً؟** (مع ذكر السبب)
+2. 📸 **أيهما أنسب للإنستغرام؟** (Instagram Readiness)
+3. 💼 **أيهما أكثر احترافية؟** (Professional Quality)
+4. 🛡️ **أيهما أكثر أصالة؟** (Authenticity & Realness)
+5. 🎯 **أيهما أكثر جذباً للجمهور؟** (Engagement Potential)
+
+Conclude with a final recommended choice and practical tips to improve the losing image."""
+
+                        res_comp = client.models.generate_content(
+                            model=MODEL_NAME,
+                            contents=[img1, img2, compare_prompt]
+                        )
+                        st.markdown("---")
+                        st.markdown("""
+                            <div class="custom-card">
+                                <h3 style="color: #c05c67; margin-top:0;">📊 نتيجة المقارنة التحليلية بين الصورتين:</h3>
+                            </div>
+                        """, unsafe_allow_html=True)
+                        st.markdown(res_comp.text)
+                    except Exception as e:
+                        st.warning("🌸 تعذر إجراء المقارنة حالياً، يرجى إعادة المحاولة.")
+
+# ==========================================
+# TAB 3: ANALYTICS
 # ==========================================
 with tab_analytics:
     st.header("📊 لوحة تحليلات تقييمات المستخدمين (Analytics Dashboard)")
