@@ -29,7 +29,7 @@ st.set_page_config(
 
 GOOGLE_SCRIPT_URL = "https://script.google.com/macros/s/AKfycby5jFANTTKQSC3xYeo_LXJ1mYsDDPDJgo_TW_M4thXp4Q6vgo_9SxGma_KJAjkAldcy/exec"
 
-# --- تحسين الـ CSS والتصميم الجمالي ---
+# --- تحسين الـ CSS، الأيقونات الكبيرة، والتصميم الجمالي ---
 st.markdown("""
     <style>
     .stApp { background-color: #fcf8f8 !important; color: #2d2424 !important; }
@@ -43,6 +43,19 @@ st.markdown("""
     .main-title { color: #d8707c; font-size: 42px; font-weight: 800; margin: 0; }
     .sub-title-1 { color: #4a3b3c; font-size: 19px; margin-top: 6px; font-weight: 600; }
     .sub-title-2 { color: #c05c67; font-size: 14px; margin-top: 4px; font-weight: 500; }
+    
+    /* Section Big Icon Headers */
+    .section-header {
+        display: flex; align-items: center; gap: 15px; margin-top: 25px; margin-bottom: 15px;
+    }
+    .section-icon {
+        font-size: 38px; background: #fbebee; width: 60px; height: 60px;
+        display: flex; align-items: center; justify-content: center;
+        border-radius: 18px; border: 1.5px solid #f2c2c8; box-shadow: 0 4px 12px rgba(216, 140, 154, 0.15);
+    }
+    .section-title-text {
+        font-size: 22px; font-weight: 800; color: #d8707c; margin: 0;
+    }
     
     /* Hero Summary Card */
     .hero-card {
@@ -72,9 +85,7 @@ st.markdown("""
         border-bottom: 1px solid #f2e2e4; border-left: 1px solid #f2e2e4;
         margin-bottom: 20px; box-shadow: 0 6px 16px rgba(0, 0, 0, 0.04); color: #2d2424 !important;
     }
-    .stTextInput input, .stSelectbox select, .stTextArea textarea { background-color: #ffffff !important; color: #2d2424 !important; border: 1px solid #e2c2c5 !important; border-radius: 10px !important; }
     
-    /* Social Media Rating Badges */
     .sm-badge {
         background-color: #fff0f2; border: 1px solid #f4c2c7; padding: 10px 15px;
         border-radius: 12px; margin-bottom: 10px; font-weight: 600; color: #4a3b3c;
@@ -86,7 +97,6 @@ st.markdown("""
 # إعداد الربط والذاكرة
 API_KEY = st.secrets.get("GEMINI_API_KEY", "")
 client = genai.Client(api_key=API_KEY) if API_KEY else None
-
 MODEL_NAME = "gemini-2.5-flash"
 
 if "history" not in st.session_state:
@@ -140,7 +150,7 @@ def generate_pdf_report(data):
     buffer.seek(0)
     return buffer
 
-# --- الهيدر ---
+# --- الهيدر الرئيسي ---
 st.markdown("""
     <div class="main-header">
         <h1 class="main-title">🌸 Lumina AI</h1>
@@ -201,7 +211,7 @@ JSON structure MUST be as follows:
      "Facebook": "⭐⭐⭐⭐",
      "TikTok": "⭐⭐⭐⭐⭐"
   },
-  "search_keywords": "3 to 4 English keywords describing aesthetic style, lighting, color tone (e.g., coffee cozy aesthetic moody)",
+  "search_keywords": "coffee aesthetic design minimal",
   "lumina_insight": "انطباع تحليلي ذكي ومختصر عن التكوين البصري والجمالية العامة والروح التي تعكسها الصورة بالعربية",
   "readiness_breakdown": [
      "✔ جودة الصورة والتنسيق البصري: ممتازة",
@@ -241,11 +251,7 @@ CRITICAL: Replace all action contents with REAL generated detailed text in Arabi
                         st.success("✨ اكتمل التحليل الجمالي والـ UI Dashboard بنجاح!")
                     
                     except Exception as e:
-                        err_text = str(e)
-                        if "429" in err_text or "Quota" in err_text or "ResourceExhausted" in err_text:
-                            st.info("⏳ **تم الوصول للحد الأقصى المؤقت للحصة المجانية (API Limit).**\n\nيرجى الانتظار دقيقة واحدة وإعادة الضغط 🌸")
-                        else:
-                            st.warning("🌸 تعذر استكمال التحليل لحظياً، يرجى المحاولة مرة أخرى.")
+                        st.warning("🌸 تعذر استكمال التحليل لحظياً، يرجى المحاولة مرة أخرى.")
 
     if "lumina_data" in st.session_state:
         data = st.session_state["lumina_data"]
@@ -279,21 +285,24 @@ CRITICAL: Replace all action contents with REAL generated detailed text in Arabi
             </div>
         """, unsafe_allow_html=True)
         
-        # --- 📱 Social Media Advisor & Reports ---
-        col_sm, col_report = st.columns([1, 1])
+        # --- 📱 SECTION 1: Social Media Advisor & Reports ---
+        st.markdown("""
+            <div class="section-header">
+                <div class="section-icon">📱</div>
+                <h3 class="section-title-text">مستشار المنصات والتقارير الفنية (Platform Advisor & Reports)</h3>
+            </div>
+        """, unsafe_allow_html=True)
         
+        col_sm, col_report = st.columns([1, 1])
         with col_sm:
             st.markdown("""
                 <div class="custom-card">
-                    <h4 style="color: #c05c67; margin-top:0; font-weight: 700;">📱 Social Media Advisor (تقييم المنصات)</h4>
-                    <p style="font-size: 13px; color: #7a6869;">مدى ملاءمة الصورة لكل منصة تواصل اجتماعي:</p>
+                    <h4 style="color: #c05c67; margin-top:0; font-weight: 700;">📊 تقييم ملاءمة الصورة للمنصات</h4>
                 </div>
             """, unsafe_allow_html=True)
-            
             ratings = data.get("platform_ratings", {
                 "Instagram": "⭐⭐⭐⭐⭐", "LinkedIn": "⭐⭐⭐", "Facebook": "⭐⭐⭐⭐", "TikTok": "⭐⭐⭐⭐⭐"
             })
-            
             for platform, stars in ratings.items():
                 st.markdown(f"""
                     <div class="sm-badge">
@@ -305,79 +314,83 @@ CRITICAL: Replace all action contents with REAL generated detailed text in Arabi
         with col_report:
             st.markdown("""
                 <div class="custom-card">
-                    <h4 style="color: #c05c67; margin-top:0; font-weight: 700;">📄 التقرير الفني والتنزيل</h4>
+                    <h4 style="color: #c05c67; margin-top:0; font-weight: 700;">📄 تنزيل التقرير</h4>
                 </div>
             """, unsafe_allow_html=True)
-            
             col_pdf, col_txt = st.columns(2)
             with col_pdf:
                 pdf_bytes = generate_pdf_report(data)
                 st.download_button(
-                    label="📄 تنزيل تقرير PDF",
-                    data=pdf_bytes,
+                    label="📄 تقرير PDF", data=pdf_bytes,
                     file_name=f"lumina_report_{datetime.now().strftime('%Y%m%d_%H%M')}.pdf",
-                    mime="application/pdf",
-                    use_container_width=True
+                    mime="application/pdf", use_container_width=True
                 )
             with col_txt:
                 report_str = f"LUMINA REPORT\nCategory: {data.get('category')}\nScore: {data.get('readiness_score')}%\nBest Platform: {data.get('best_platform')}\nInsight: {data.get('lumina_insight')}"
                 st.download_button(
-                    label="📝 تنزيل ملف TXT",
-                    data=report_str,
-                    file_name="lumina_report.txt",
-                    mime="text/plain",
-                    use_container_width=True
+                    label="📝 ملف TXT", data=report_str,
+                    file_name="lumina_report.txt", mime="text/plain", use_container_width=True
                 )
                 
-            # Expanders للتفاصيل العميقة لتقليل التمرير
-            with st.expander("🔍 تفاصيل الأدلة البصرية والأصالة (Reasoning)"):
+            with st.expander("🔍 تفاصيل الأدلة البصرية (Reasoning)"):
                 for r in data.get('reasoning', []):
                     st.write(f"• {r}")
-                    
-            with st.expander("📊 تفاصيل جاهزية النشر (Readiness Breakdown)"):
+            with st.expander("📊 قائمة جاهزية النشر (Readiness Breakdown)"):
                 for item in data.get('readiness_breakdown', []):
                     st.write(f"- {item}")
 
         st.divider()
 
-        # --- 🌸 Visual Moodboard ---
-        st.subheader("🖼️ معرض الصور المشابهة ولوحة الإلهام (AI Visual Moodboard)")
+        # --- 🖼️ SECTION 2: Visual Moodboard ---
+        st.markdown("""
+            <div class="section-header">
+                <div class="section-icon">🖼️</div>
+                <h3 class="section-title-text">معرض الصور المشابهة ولوحة الإلهام (AI Visual Moodboard)</h3>
+            </div>
+        """, unsafe_allow_html=True)
+        
         search_kw = data.get("search_keywords", "aesthetic visual design")
-        st.write(f"🔍 **الكلمات المفتاحية البصرية المستخرجة:** `{search_kw}`")
+        st.write(f"🔍 **الكلمات المفتاحية المستخرجة للبحث الجمالي:** `{search_kw}`")
         
         keywords_encoded = urllib.parse.quote(search_kw)
         first_word = search_kw.split()[0] if search_kw.split() else "aesthetic"
-        first_word_encoded = urllib.parse.quote(first_word)
-        
-        col1, col2, col3, col4 = st.columns(4)
+        first_word_clean = urllib.parse.quote(first_word.lower())
+
+        # جلب صور ديناميكية موضوعية تعتمد 100% على موضوع الصورة المرفوعة
         img_urls = [
-            f"https://loremflickr.com/400/500/{first_word_encoded}?lock=1",
-            f"https://loremflickr.com/400/500/{first_word_encoded}?lock=2",
-            f"https://loremflickr.com/400/500/{first_word_encoded}?lock=3",
-            f"https://loremflickr.com/400/500/{first_word_encoded}?lock=4"
+            f"https://source.unsplash.com/featured/400x500/?{first_word_clean},aesthetic&sig=1",
+            f"https://loremflickr.com/400/500/{first_word_clean}?lock=1",
+            f"https://loremflickr.com/400/500/{first_word_clean}?lock=2",
+            f"https://source.unsplash.com/featured/400x500/?{first_word_clean},mood&sig=3"
         ]
         
+        col1, col2, col3, col4 = st.columns(4)
         cols = [col1, col2, col3, col4]
         for idx, col in enumerate(cols):
             with col:
-                st.image(img_urls[idx], caption=f"إلهام بصري {idx+1} 🌸", use_container_width=True)
+                st.image(img_urls[idx], caption=f"إلهام بصري متناسق {idx+1} 🌸", use_container_width=True)
 
         pinterest_url = f"https://www.pinterest.com/search/pins/?q={keywords_encoded}"
         st.markdown(f"""
-            <div style="text-align: center; margin-top: 15px;">
+            <div style="text-align: center; margin-top: 18px;">
                 <a href="{pinterest_url}" target="_blank" class="pinterest-btn">
-                    📌 تصفح المزيد من الصور المطابقة مباشرة على Pinterest
+                    📌 تصفح النتائج الحية المطابقة بدقة على Pinterest
                 </a>
             </div>
         """, unsafe_allow_html=True)
 
         st.divider()
 
-        # --- 🔧 Interactive Enhancer (Full Width) ---
-        st.subheader("🔧 أداة المعاينة والمقارنة البصرية (Full-Width Interactive Enhancer)")
+        # --- 🔧 SECTION 3: Interactive Enhancer ---
+        st.markdown("""
+            <div class="section-header">
+                <div class="section-icon">🔧</div>
+                <h3 class="section-title-text">أداة المعاينة والمقارنة البصرية (Full-Width Interactive Enhancer)</h3>
+            </div>
+        """, unsafe_allow_html=True)
+        
         if "current_image" in st.session_state:
             curr_img = st.session_state["current_image"]
-            
             c_s1, c_s2 = st.columns(2)
             with c_s1:
                 contrast_val = st.slider("التباين (Contrast)", 0.5, 2.0, 1.2)
@@ -391,12 +404,7 @@ CRITICAL: Replace all action contents with REAL generated detailed text in Arabi
             
             try:
                 if image_comparison:
-                    image_comparison(
-                        img1=curr_img,
-                        img2=img_mod,
-                        label1="الصورة الأصلية",
-                        label2="المعدلة بـ Lumina"
-                    )
+                    image_comparison(img1=curr_img, img2=img_mod, label1="الأصلية", label2="المعدلة بـ Lumina")
                 else:
                     st.image([curr_img, img_mod], caption=["الصورة الأصلية", "المعدلة تلقائياً"], use_container_width=True)
             except Exception:
@@ -404,19 +412,20 @@ CRITICAL: Replace all action contents with REAL generated detailed text in Arabi
 
         st.divider()
         
-        # --- ✨ Smart Actions (Clickable Cards Grid UI) ---
-        st.subheader("✨ الميزات الاستراتيجية وصناعة المحتوى الجمالي (Smart Actions)")
-        st.write("اضغطي على أي بطاقة لعرض نتائج التوليد الخاصة بها في الأسفل:")
+        # --- ✨ SECTION 4: Smart Actions ---
+        st.markdown("""
+            <div class="section-header">
+                <div class="section-icon">✨</div>
+                <h3 class="section-title-text">الميزات الاستراتيجية وصناعة المحتوى الجمالي (Smart Actions)</h3>
+            </div>
+        """, unsafe_allow_html=True)
         
         actions = data.get("smart_actions", [])
-        
-        # عرض الميزات 9 على شكل Grid كروت تفاعلية
         grid_cols = st.columns(3)
         for idx, act in enumerate(actions):
             col_target = grid_cols[idx % 3]
             icon = act.get("icon", "✨")
             title = act.get("title", f"ميزة {idx+1}")
-            
             is_selected = (st.session_state["selected_action_idx"] == idx)
             btn_label = f"{'🌸 ' if is_selected else ''}{icon} {title}"
             
@@ -424,7 +433,6 @@ CRITICAL: Replace all action contents with REAL generated detailed text in Arabi
                 if st.button(btn_label, key=f"btn_act_{idx}", use_container_width=True):
                     st.session_state["selected_action_idx"] = idx
 
-        # عرض محتوى الكرت المحدد في الأسفل
         selected_act = actions[st.session_state["selected_action_idx"]]
         st.markdown(f"""
             <div class="custom-card" style="margin-top: 15px;">
@@ -435,8 +443,14 @@ CRITICAL: Replace all action contents with REAL generated detailed text in Arabi
 
         st.divider()
         
-        # --- 💬 Ask Lumina ---
-        st.subheader("💬 Ask Lumina (المستشار الذكي)")
+        # --- 💬 SECTION 5: Ask Lumina ---
+        st.markdown("""
+            <div class="section-header">
+                <div class="section-icon">💬</div>
+                <h3 class="section-title-text">المستشار الذكي (Ask Lumina)</h3>
+            </div>
+        """, unsafe_allow_html=True)
+        
         with st.form("ask_lumina_form"):
             selected_option = st.selectbox(
                 "اختر سؤالاً سريعاً أو اكتب سؤالك:",
@@ -462,8 +476,7 @@ CRITICAL: Replace all action contents with REAL generated detailed text in Arabi
                                 payload.insert(0, st.session_state["current_image"])
                                 
                             res = client.models.generate_content(
-                                model=MODEL_NAME,
-                                contents=payload
+                                model=MODEL_NAME, contents=payload
                             )
                             st.markdown("### 🤖 إجابة المستشار الذكي:")
                             st.info(res.text)
@@ -472,8 +485,14 @@ CRITICAL: Replace all action contents with REAL generated detailed text in Arabi
 
         st.divider()
         
-        # --- ⭐ Feedback Form ---
-        st.subheader("⭐ شاركنا رأيك وتقييمك للتجربة")
+        # --- ⭐ SECTION 6: Feedback ---
+        st.markdown("""
+            <div class="section-header">
+                <div class="section-icon">⭐</div>
+                <h3 class="section-title-text">تقييم التجربة (User Feedback)</h3>
+            </div>
+        """, unsafe_allow_html=True)
+        
         with st.form("feedback_form"):
             rating = st.slider("تقييمك للدقة والجودة (من 1 إلى 5 نجوم):", 1, 5, 5)
             comment = st.text_input("ملاحظاتك أو تعليقك اللطيف (اختياري):")
@@ -494,7 +513,7 @@ CRITICAL: Replace all action contents with REAL generated detailed text in Arabi
                     )
                     with urllib.request.urlopen(req) as response:
                         st.balloons()
-                        st.success("شكراً لك! تم إرسال تقييمك وحفظه في جوجل شيت بنجاح. 🌸")
+                        st.success("شكراً لك! تم إرسال تقييمك وحفظه بنجاح. 🌸")
                 except Exception:
                     st.success("شكراً لك! تم تسليم تقييمك بنجاح 🎉")
 
@@ -502,11 +521,16 @@ CRITICAL: Replace all action contents with REAL generated detailed text in Arabi
         st.info("👈اهلا بك نحن بانتظارك لنبدأ معا")
 
 # ==========================================
-# TAB 2: AI IMAGE COMPARISON (الميزة الجديدة ⚖️)
+# TAB 2: AI IMAGE COMPARISON
 # ==========================================
 with tab_compare:
-    st.header("⚖️ مقارنة صورتين بالذكاء الاصطناعي (AI Image Comparison)")
-    st.write(" ارفعي صورتين وسيحدد لكِ Lumina أيّهما الأفضل، الأنسب للإنستغرام، الأكثر احترافية وأصالة مع التحليل التفصيلي!")
+    st.markdown("""
+        <div class="section-header">
+            <div class="section-icon">⚖️</div>
+            <h3 class="section-title-text">مقارنة صورتين بالذكاء الاصطناعي (AI Image Comparison)</h3>
+        </div>
+    """, unsafe_allow_html=True)
+    st.write("ارفيع صورتين وسيحدد لكِ Lumina أيّهما الأفضل، الأنسب للإنستغرام، الأكثر احترافية وأصالة مع التحليل التفصيلي!")
     
     col_img1, col_img2 = st.columns(2)
     with col_img1:
@@ -541,8 +565,7 @@ Provide a structured, beautifully formatted Arabic analysis answering:
 Conclude with a final recommended choice and practical tips to improve the losing image."""
 
                         res_comp = client.models.generate_content(
-                            model=MODEL_NAME,
-                            contents=[img1, img2, compare_prompt]
+                            model=MODEL_NAME, contents=[img1, img2, compare_prompt]
                         )
                         st.markdown("---")
                         st.markdown("""
@@ -551,14 +574,19 @@ Conclude with a final recommended choice and practical tips to improve the losin
                             </div>
                         """, unsafe_allow_html=True)
                         st.markdown(res_comp.text)
-                    except Exception as e:
+                    except Exception:
                         st.warning("🌸 تعذر إجراء المقارنة حالياً، يرجى إعادة المحاولة.")
 
 # ==========================================
 # TAB 3: ANALYTICS
 # ==========================================
 with tab_analytics:
-    st.header("📊 لوحة تحليلات تقييمات المستخدمين (Analytics Dashboard)")
+    st.markdown("""
+        <div class="section-header">
+            <div class="section-icon">📊</div>
+            <h3 class="section-title-text">لوحة تحليلات تقييمات المستخدمين (Analytics Dashboard)</h3>
+        </div>
+    """, unsafe_allow_html=True)
     
     try:
         conn = st.connection("gsheets", type=GSheetsConnection)
@@ -566,7 +594,6 @@ with tab_analytics:
         
         if not df_feedback.empty and "Rating" in df_feedback.columns:
             df_feedback["Rating"] = pd.to_numeric(df_feedback["Rating"], errors='coerce')
-            
             m1, m2, m3 = st.columns(3)
             m1.metric("إجمالي التقييمات", len(df_feedback))
             m2.metric("متوسط التقييم", f"{df_feedback['Rating'].mean():.2f} / 5.0 ⭐")
